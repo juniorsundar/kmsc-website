@@ -253,8 +253,15 @@ test('Decap config does not expose a provider secret', async ({ page }) => {
   expect(response?.ok()).toBeTruthy();
   const text = await response!.text();
   expect(text).not.toMatch(/secret|token|password|oauth.*key/i);
-  // Verify collections exist
+  // Verify collections and the editable Training Service contract exist
   expect(text).toContain('page-content');
+  expect(text).toContain('servicesPage');
+  expect(text).toContain('name: services');
+  expect(text).toContain('folder: content/services');
+  expect(text).toContain('identifier_field: name');
+  expect(text).toContain('name: order');
+  expect(text).toContain('name: summary');
+  expect(text).toContain('name: description');
   expect(text).toContain('blog');
 });
 

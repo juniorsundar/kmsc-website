@@ -50,12 +50,25 @@ collections:
               - { name: heading, label: Page heading, widget: string }
               - { name: intro, label: Introduction, widget: text }
               - { name: founderBio, label: Founder biography, widget: text, hint: "Restrained placeholder until approved copy is ready. Do not add fabricated claims, testimonials, or statistics." }
-          - name: services
-            label: Training Services
-            widget: list
+          - name: servicesPage
+            label: Services page
+            widget: object
             fields:
-              - { name: name, label: Service name, widget: string }
-              - { name: description, label: Description, widget: text, hint: "Restrained placeholder. Do not add unsupported outcomes, accreditations, statistics, or client claims." }
+              - { name: heading, label: Page heading, widget: string }
+              - { name: intro, label: Introduction, widget: text }
+  - name: services
+    label: Training Services
+    folder: content/services
+    extension: json
+    format: json
+    create: true
+    identifier_field: name
+    slug: "{{slug}}"
+    fields:
+      - { name: order, label: Display order, widget: number, value_type: int, min: 1, hint: "Lower numbers appear first. Use a unique number for each Training Service." }
+      - { name: name, label: Service name, widget: string }
+      - { name: summary, label: Summary, widget: text, hint: "A concise, accurate overview. Do not add unsupported outcomes, accreditations, statistics, or client claims." }
+      - { name: description, label: Description, widget: text, hint: "Restrained placeholder or approved scope description. Do not add unsupported outcomes, accreditations, statistics, or client claims." }
   - name: blog
     label: Blog Posts
     folder: content/blog

@@ -1,21 +1,55 @@
 import { readFile, readdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { relative, resolve, sep } from 'node:path';
 import { z } from 'zod';
 
-const service = z.object({ name: z.string().trim().min(1), description: z.string().trim().min(1) });
+const trainingService = z.object({
+  order: z.number().int().positive(),
+  name: z.string().trim().min(1),
+  summary: z.string().trim().min(1),
+  description: z.string().trim().min(1)
+});
 const content = z.object({
   site: z.object({
     legalName: z.literal('Kautilya Management System Consultancy Pvt. Ltd.'),
-    email: z.string().email(), cta: z.literal('Discuss Your Training Needs'),
+    email: z.string().email(),
+    cta: z.literal('Discuss Your Training Needs'),
     author: z.object({ name: z.literal('Dr. Sundar Subramani'), role: z.string().min(1) }),
-    description: z.string().trim().min(1), noindex: z.boolean(),
+    description: z.string().trim().min(1),
+    noindex: z.boolean(),
     socialPreview: z.string().regex(/^\/(media)\/.+\.(jpe?g|png|webp)$/i),
     footerTagline: z.string().trim().min(1)
   }),
-  home: z.object({ eyebrow: z.string().min(1), headline: z.string().min(1), intro: z.string().min(1), servicesHeading: z.string().min(1), servicesIntro: z.string().min(1) }),
+  home: z.object({
+    eyebrow: z.string().min(1),
+    headline: z.string().min(1),
+    intro: z.string().min(1),
+    servicesHeading: z.string().min(1),
+    servicesIntro: z.string().min(1)
+  }),
   about: z.object({ heading: z.string().min(1), intro: z.string().min(1), founderBio: z.string().min(1) }),
-  services: z.array(service).min(1)
+  servicesPage: z.object({ heading: z.string().trim().min(1), intro: z.string().trim().min(1) })
 });
-const blogPost = z.object({ title: z.string().trim().min(1), slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), summary: z.string().trim().min(1), date: z.string().date(), body: z.string().trim().min(1), tags: z.array(z.string()), author: z.string().min(1), cover: z.string().regex(/^\/media\/.+\.(jpe?g|png|webp)$/i).optional(), noindex: z.boolean().default(true) });
+const blogPost = z.object({
+  title: z.string().trim().min(1),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  summary: z.string().trim().min(1),
+  date: z.string().date(),
+  body: z.string().trim().min(1),
+  tags: z.array(z.string()),
+  author: z.string().min(1),
+  cover: z.string().regex(/^\/media\/.+\.(jpe?g|png|webp)$/i).optional(),
+  noindex: z.boolean().default(true)
+});
+
+async function readJson(file, label) {
+  try {
+    return JSON.parse(await readFile(file));
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid ${label} ${contentLabel(file)}: malformed JSON (${reason})`);
+  }
+}
 
 function parse(value, schema, label) {
   const result = schema.safeParse(value);
@@ -25,17 +59,54 @@ function parse(value, schema, label) {
   }
   return result.data;
 }
-const page = parse(JSON.parse(await readFile(new URL('../content/page-content.json', import.meta.url))), content, 'Page Content');
-const blogDir = new URL('../content/blog/', import.meta.url);
-let dirEntries = [];
-try { dirEntries = await readdir(blogDir); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-const files = dirEntries.filter(file => file.endsWith('.json')).sort();
-const posts = await Promise.all(files.map(async file => JSON.parse(await readFile(new URL(file, blogDir)))));
-const slugs = new Set();
-for (const [index, post] of posts.entries()) {
-  const valid = parse(post, blogPost, `Blog Post ${files[index]}`);
-  if (slugs.has(valid.slug)) throw new Error(`Invalid Blog Posts: duplicate slug "${valid.slug}"`);
-  slugs.add(valid.slug);
+
+const contentRoot = process.env.CONTENT_DIR
+  ? resolve(process.env.CONTENT_DIR)
+  : fileURLToPath(new URL('../content/', import.meta.url));
+const contentPath = file => resolve(contentRoot, file);
+const contentLabel = file => `content/${relative(contentRoot, file).split(sep).join('/')}`;
+
+async function loadCollection(directory, label, schema, { required = false } = {}) {
+  let dirEntries = [];
+  try {
+    dirEntries = await readdir(directory);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
+  const files = dirEntries.filter(file => file.endsWith('.json')).sort();
+  if (required && files.length === 0) {
+    throw new Error(`Invalid ${label}s: ${contentLabel(directory)} must contain at least one ${label}.`);
+  }
+
+  return Promise.all(files.map(async file => {
+    const fullPath = resolve(directory, file);
+    const value = await readJson(fullPath, label);
+    return { file: contentLabel(fullPath), value: parse(value, schema, `${label} ${contentLabel(fullPath)}`) };
+  }));
 }
-console.log(`Validated Page Content and ${posts.length} Blog Post${posts.length === 1 ? '' : 's'}.`);
-export { page, posts };
+
+const pagePath = contentPath('page-content.json');
+const page = parse(await readJson(pagePath, 'Page Content'), content, 'Page Content');
+const serviceEntries = await loadCollection(contentPath('services'), 'Training Service', trainingService, { required: true });
+const services = serviceEntries.map(entry => entry.value);
+const serviceOrders = new Map();
+for (const entry of serviceEntries) {
+  if (serviceOrders.has(entry.value.order)) {
+    throw new Error(`Invalid Training Services: duplicate order "${entry.value.order}" in ${serviceOrders.get(entry.value.order)} and ${entry.file}.`);
+  }
+  serviceOrders.set(entry.value.order, entry.file);
+}
+
+const postEntries = await loadCollection(contentPath('blog'), 'Blog Post', blogPost);
+const posts = postEntries.map(entry => entry.value);
+const slugs = new Map();
+for (const entry of postEntries) {
+  if (slugs.has(entry.value.slug)) {
+    throw new Error(`Invalid Blog Posts: duplicate slug "${entry.value.slug}" in ${slugs.get(entry.value.slug)} and ${entry.file}.`);
+  }
+  slugs.set(entry.value.slug, entry.file);
+}
+
+console.log(`Validated Page Content, ${services.length} Training Services, and ${posts.length} Blog Post${posts.length === 1 ? '' : 's'}.`);
+export { page, services, posts };
