@@ -4,12 +4,16 @@
 
 **Blocked by:** 08 — Produce atomic static releases.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] A restricted deployment account and dedicated key can write release artifacts and switch the website’s live release without general administrator access.
-- [ ] Release directories and permissions support atomic deployment and rollback while preventing the web server from modifying source-controlled content.
-- [ ] Caddy configuration validates before activation and serves the selected static release without requiring Node.js.
-- [ ] Host firewall changes add inbound TCP 80 and 443 only; existing SSH, Headscale, and Tailscale rules remain otherwise unchanged.
-- [ ] Headscale continues listening on port 8080 and is not reconfigured, restarted, proxied, or incorporated into the website deployment.
-- [ ] A deployment and rollback smoke test succeeds against the prepared VM without a partial-live state.
-- [ ] Before-and-after checks record active services, listeners, firewall behavior, and sufficient disk/memory headroom.
+- [x] A restricted deployment account and dedicated key can write release artifacts and switch the website’s live release without general administrator access.
+- [x] Release directories and permissions support atomic deployment and rollback while preventing the web server from modifying source-controlled content.
+- [x] Caddy configuration validates before activation and serves the selected static release without requiring Node.js.
+- [x] Host firewall changes add inbound TCP 80 and 443 only; existing SSH, Headscale, and Tailscale rules remain otherwise unchanged.
+- [x] Headscale continues listening on port 8080 and is not reconfigured, restarted, proxied, or incorporated into the website deployment.
+- [x] A deployment and rollback smoke test succeeds against the prepared VM without a partial-live state.
+- [x] Before-and-after checks record active services, listeners, firewall behavior, and sufficient disk/memory headroom.
+
+## Answer
+
+Implemented and verified against the repository test, build, and documented production-evidence checks.

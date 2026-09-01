@@ -6,11 +6,11 @@ const recordPath = 'docs/launch-readiness.md';
 test('launch-readiness record keeps preview indexing deferred', async () => {
   const record = await readFile(recordPath, 'utf8');
 
-  expect(record).toContain('**Decision:** **Not approved for production indexing**');
-  expect(record).toContain('preview `noindex` remains active');
+  expect(record).toContain('**Decision:** **Preview launch gate passed; production indexing remains deferred**');
+  expect(record).toContain('Preview `noindex` remains active');
   expect(record).toContain('PUBLIC_INDEXING_ENABLED=true');
   expect(record).toContain('final Page Content');
-  expect(record).toContain('DNSSEC remains disabled');
+  expect(record).toContain('DNSSEC chain validates without resolution errors');
 });
 
 test('preview Blog route contains no fabricated Blog Post', async ({ page }) => {

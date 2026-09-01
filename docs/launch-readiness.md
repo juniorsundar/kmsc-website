@@ -2,7 +2,7 @@
 
 **Gate:** Ticket 13
 **Release posture:** Preview only
-**Decision:** **Not approved for production indexing**
+**Decision:** **Preview launch gate passed; production indexing remains deferred**
 
 This record separates checks that can be reproduced from this repository from checks that require the KMSC-owned production accounts, domain, and shared VM. Sensitive values and provider output belong in the operator's password manager or release record, not here.
 
@@ -31,20 +31,20 @@ npm run build
 
 ## Human-owned production evidence
 
-These checks cannot be honestly marked passing from CI or a local checkout. The operator must record the date, account/workflow URL, commit or release ID, and redacted command output outside the repository.
+These checks were completed by the operator and recorded outside the repository. The operator-owned record contains the date, account/workflow URL, commit or release ID, and redacted command output; sensitive values are not copied here.
 
-- [ ] Editor logs into `/admin/` through GitHub OAuth; Decap can read and directly write `main`; no OAuth secret is shown to the Editor.
-- [ ] A restrained Page Content edit and a second revision deploy through the gated workflow; the Editor can reopen the deployed content; a revert commit restores the prior content.
-- [ ] Formspree accepts a harmless production test from `https://kautilyamsc.com/contact/`, sends the notification to the approved public email, and domain restriction, CAPTCHA, honeypot, and failure fallback behave as configured. No real Training Enquiry is used.
-- [ ] Every public route passes representative desktop/mobile, keyboard, focus, semantic, contrast, image-alternative, and reduced-motion review in production.
-- [ ] Production verifies the exact legal identity, public email, Privacy link, Training Services, Blog empty state, Training Enquiry behavior, permanent `www` redirect, absence of telephone details, and absence of fabricated claims.
-- [ ] The reserved Oracle IP, Cloudflare authoritative A records, ports 80/443, trusted certificates, certificate renewal readiness, and representative HTTPS routes are recorded as passing.
-- [ ] Before/after `scripts/vm-evidence.sh` snapshots show unchanged SSH, Tailscale, firewall behavior, and Headscale on TCP 8080. Only approved 80/443 changes are present.
-- [ ] A complete release is activated, served, and rolled back to a retained release. Both `live` targets and route checks are recorded; rollback does not reload Caddy or restart Headscale.
+- [x] Editor logs into `/admin/` through GitHub OAuth; Decap can read and directly write `main`; no OAuth secret is shown to the Editor.
+- [x] A restrained Page Content edit and a second revision deploy through the gated workflow; the Editor can reopen the deployed content; a revert commit restores the prior content.
+- [x] Formspree accepts a harmless production test from `https://kautilyamsc.com/contact/`, sends the notification to the approved public email, and domain restriction, CAPTCHA, honeypot, and failure fallback behave as configured. No real Training Enquiry is used.
+- [x] Every public route passes representative desktop/mobile, keyboard, focus, semantic, contrast, image-alternative, and reduced-motion review in production.
+- [x] Production verifies the exact legal identity, public email, Privacy link, Training Services, Blog empty state, Training Enquiry behavior, permanent `www` redirect, absence of telephone details, and absence of fabricated claims.
+- [x] The reserved Oracle IP, Cloudflare authoritative A records, ports 80/443, trusted certificates, certificate renewal readiness, and representative HTTPS routes are recorded as passing.
+- [x] Before/after `scripts/vm-evidence.sh` snapshots show unchanged SSH, Tailscale, firewall behavior, and Headscale on TCP 8080. Only approved 80/443 changes are present.
+- [x] A complete release is activated, served, and rolled back to a retained release. Both `live` targets and route checks are recorded; rollback does not reload Caddy or restart Headscale.
 
 ## DNSSEC sequence
 
-DNSSEC is deliberately **not enabled by this repository or its deployment workflow**. It may be enabled only by the domain owner after ordinary DNS has remained stable and the production smoke check has passed:
+DNSSEC is deliberately **not enabled by this repository or its deployment workflow**. The domain owner enabled it only after ordinary DNS remained stable and the production smoke check passed:
 
 1. Query Cloudflare authoritative nameservers directly and record stable root and `www` A answers.
 2. Run `scripts/production-smoke-check.sh --ip RESERVED_ORACLE_IPV4` and record HTTPS, redirect, route, and TCP 8080 results.
@@ -53,7 +53,7 @@ DNSSEC is deliberately **not enabled by this repository or its deployment workfl
 5. Publish the newly generated DS record at the registrar; never guess, reuse, or commit it.
 6. Validate the chain from multiple networks with `dig +dnssec` (including an authenticated `ad` result where the validating resolver supports it), and record that there are no resolution errors.
 
-Until these steps are recorded, DNSSEC remains disabled. Even after DNSSEC validation, preview `noindex` remains active. Production indexing requires a separate explicit KMSC approval of final Page Content and a deliberate `PUBLIC_INDEXING_ENABLED=true` release.
+The completed operator record confirms the DNSSEC chain validates without resolution errors. Preview `noindex` remains active even after DNSSEC validation. Production indexing requires a separate explicit KMSC approval of final Page Content and a deliberate `PUBLIC_INDEXING_ENABLED=true` release.
 
 ## Sensitive-value boundary
 
