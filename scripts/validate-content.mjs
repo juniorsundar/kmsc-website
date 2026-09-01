@@ -19,7 +19,8 @@ const content = z.object({
     description: z.string().trim().min(1),
     noindex: z.boolean(),
     socialPreview: z.string().regex(/^\/(media)\/.+\.(jpe?g|png|webp)$/i),
-    footerTagline: z.string().trim().min(1)
+    footerTagline: z.string().trim().min(1),
+    formspreeEndpoint: z.string().url().regex(/^https:\/\/formspree\.io\/f\/.+$/, 'must be a Formspree form endpoint').optional()
   }),
   home: z.object({
     eyebrow: z.string().min(1),
@@ -29,7 +30,12 @@ const content = z.object({
     servicesIntro: z.string().min(1)
   }),
   about: z.object({ heading: z.string().min(1), intro: z.string().min(1), founderBio: z.string().min(1) }),
-  servicesPage: z.object({ heading: z.string().trim().min(1), intro: z.string().trim().min(1) })
+  servicesPage: z.object({ heading: z.string().trim().min(1), intro: z.string().trim().min(1) }),
+  contact: z.object({
+    eyebrow: z.string().trim().min(1),
+    heading: z.string().trim().min(1),
+    intro: z.string().trim().min(1)
+  })
 });
 const blogPost = z.object({
   title: z.string().trim().min(1),

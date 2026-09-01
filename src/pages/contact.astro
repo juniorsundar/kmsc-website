@@ -1,6 +1,107 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import content from '../../content/page-content.json';
-const { site } = content;
+
+const { site, contact } = content;
+const endpoint = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || site.formspreeEndpoint || 'https://formspree.io/f/placeholder';
 ---
-<BaseLayout title={`Contact | ${site.legalName}`}><section class="page-heading"><p class="eyebrow">Start a conversation</p><h1>Discuss your training needs.</h1></section><section class="prose section"><p>Share a little context and KMSC will be able to understand your enquiry.</p><form action="https://formspree.io/f/placeholder" method="POST"><label for="name">Name<input id="name" name="name" required autocomplete="name" /></label><label for="email">Work email<input id="email" name="email" type="email" required autocomplete="email" /></label><label for="company">Company<input id="company" name="company" required autocomplete="organization" /></label><label for="interest">Training interest<input id="interest" name="training-interest" required /></label><label for="message">Message<textarea id="message" name="message" required></textarea></label><label class="check"><input type="checkbox" name="privacy-consent" required /> I consent to KMSC processing this information to respond to my Training Enquiry.</label><input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" /><button class="button" type="submit">Send Training Enquiry</button></form><p>Or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p></section></BaseLayout>
+<BaseLayout title={`Contact | ${site.legalName}`}>
+  <section class="page-heading">
+    <p class="eyebrow">{contact.eyebrow}</p>
+    <h1>{contact.heading}</h1>
+  </section>
+  <section class="prose section">
+    <p>{contact.intro}</p>
+    <form action={endpoint} method="POST" novalidate>
+      <div class="form-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
+
+      <label for="name">Name
+        <input id="name" name="name" required autocomplete="name" aria-describedby="name-error" />
+        <span class="field-error" id="name-error" role="alert"></span>
+      </label>
+      <label for="email">Work email
+        <input id="email" name="email" type="email" required autocomplete="email" aria-describedby="email-error" />
+        <span class="field-error" id="email-error" role="alert"></span>
+      </label>
+      <label for="company">Company
+        <input id="company" name="company" required autocomplete="organization" aria-describedby="company-error" />
+        <span class="field-error" id="company-error" role="alert"></span>
+      </label>
+      <label for="interest">Training interest
+        <input id="interest" name="training-interest" required aria-describedby="interest-error" />
+        <span class="field-error" id="interest-error" role="alert"></span>
+      </label>
+      <label for="message">Message
+        <textarea id="message" name="message" required aria-describedby="message-error"></textarea>
+        <span class="field-error" id="message-error" role="alert"></span>
+      </label>
+      <label class="check" for="privacy-consent">
+        <input id="privacy-consent" type="checkbox" name="privacy-consent" value="true" required aria-describedby="privacy-consent-error" />
+        <span>I consent to KMSC processing this information to respond to my Training Enquiry.</span>
+      </label>
+      <span class="field-error" id="privacy-consent-error" role="alert"></span>
+      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0" />
+      <button class="button" type="submit">Send Training Enquiry</button>
+    </form>
+    <p>Or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ email: site.email }}>
+  const form = document.querySelector('form');
+  const status = form?.querySelector('.form-status');
+  const fields = ['name', 'email', 'company', 'training-interest', 'message', 'privacy-consent'];
+
+  if (form && status) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.hidden = true;
+      status.textContent = '';
+
+      let firstInvalid = null;
+      for (const name of fields) {
+        const field = form.elements.namedItem(name);
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) continue;
+        const error = form.querySelector(`#${name === 'training-interest' ? 'interest' : name}-error`);
+        if (!field || !error) continue;
+        const invalid = field.type === 'checkbox' ? !field.checked : !field.value.trim() || (field.type === 'email' && !field.validity.valid);
+        field.setAttribute('aria-invalid', String(invalid));
+        error.textContent = invalid
+          ? field.type === 'email' ? 'Please enter a valid work email.' : field.type === 'checkbox' ? 'Please give consent before sending your enquiry.' : `Please enter your ${name === 'training-interest' ? 'training interest' : name}.`
+          : '';
+        if (invalid && !firstInvalid) firstInvalid = field;
+      }
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+      }
+
+      const button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error('Form submission failed');
+        const result = await response.json().catch(() => ({}));
+        if (result.ok === false) throw new Error('Form submission failed');
+        form.reset();
+        status.textContent = 'Your Training Enquiry was sent. KMSC will respond by email.';
+        status.className = 'form-status success';
+      } catch {
+        status.textContent = 'The Training Enquiry could not be sent. Please try again or email ';
+        const fallback = document.createElement('a');
+        fallback.href = `mailto:${email}`;
+        fallback.textContent = email;
+        status.append(fallback, '.');
+        status.className = 'form-status failure';
+      } finally {
+        status.hidden = false;
+        status.focus();
+        if (button) button.disabled = false;
+      }
+    });
+  }
+</script>

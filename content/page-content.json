@@ -10,7 +10,8 @@
     "description": "KMSC provides professional training for Client Companies.",
     "noindex": true,
     "socialPreview": "/media/social-preview.png",
-    "footerTagline": "Professional training for Client Companies."
+    "footerTagline": "Professional training for Client Companies.",
+    "formspreeEndpoint": "https://formspree.io/f/placeholder"
   },
   "home": {
     "eyebrow": "Kautilya Management System Consultancy Pvt. Ltd.",
@@ -27,5 +28,10 @@
   "servicesPage": {
     "heading": "Training Services",
     "intro": "Explore KMSC's current Training Services. Each offering is presented as a starting point for a conversation; further Page Content will be added as it is approved."
+  },
+  "contact": {
+    "eyebrow": "Start a conversation",
+    "heading": "Discuss your training needs.",
+    "intro": "Share a little context and KMSC will be able to understand your enquiry."
   }
 }
