@@ -4,8 +4,10 @@ test('Home presents validated starter Page Content', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Professional training/);
   await expect(page.locator('h1')).toContainText('Practical training');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://kautilyamsc.com/');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://preview.kautilyamsc.com/');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://preview.kautilyamsc.com/');
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
   await expect(page.getByRole('link', { name: 'Discuss Your Training Needs' })).toHaveAttribute('href', '/contact/');
   await expect(page.getByText('Management System Design and Implementation')).toBeVisible();
 });

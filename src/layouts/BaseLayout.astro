@@ -1,15 +1,17 @@
 ---
 import content from '../../content/page-content.json';
+import { indexingEnabled } from '../config/release';
 const { site } = content;
 const {
   title = `${site.legalName} | KMSC`,
   description = site.description,
-  canonical = Astro.url,
   type = 'website',
   image = site.socialPreview,
-  noindex = site.noindex,
   publishedTime
 } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const socialImage = image ? new URL(image, Astro.site).href : undefined;
+const effectiveNoindex = !indexingEnabled;
 const year = new Date().getFullYear();
 ---
 <!doctype html>
@@ -18,7 +20,7 @@ const year = new Date().getFullYear();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {effectiveNoindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -26,7 +28,12 @@ const year = new Date().getFullYear();
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={type} />
-    <meta property="og:image" content={new URL(image, Astro.site || 'https://kautilyamsc.com').href} />
+    <meta property="og:url" content={canonical} />
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && <meta name="twitter:image" content={socialImage} />}
     {publishedTime && <meta property="article:published_time" content={publishedTime} />}
     <title>{title}</title>
   </head>
