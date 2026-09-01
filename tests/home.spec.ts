@@ -17,6 +17,7 @@ test('public routes and empty Blog state work', async ({ page }) => {
   }
   await page.goto('/blog/');
   await expect(page.getByText('Insights coming soon')).toBeVisible();
+  await expect(page.locator('.card')).toHaveCount(0);
 });
 
 test('contact form exposes required enquiry contract', async ({ page }) => {

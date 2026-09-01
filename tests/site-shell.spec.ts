@@ -262,6 +262,11 @@ test('Decap config does not expose a provider secret', async ({ page }) => {
   expect(text).toContain('name: order');
   expect(text).toContain('name: summary');
   expect(text).toContain('name: description');
+  expect(text).toContain('identifier_field: slug');
+  expect(text).toContain('name: title');
+  expect(text).toContain('name: date');
+  expect(text).toContain('name: cover');
+  expect(text).toContain('name: coverAlt');
   expect(text).toContain('blog');
 });
 

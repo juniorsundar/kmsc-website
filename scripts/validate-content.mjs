@@ -1,7 +1,8 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { relative, resolve, sep } from 'node:path';
 import { z } from 'zod';
+import { marked } from 'marked';
 
 const trainingService = z.object({
   order: z.number().int().positive(),
@@ -32,14 +33,19 @@ const content = z.object({
 });
 const blogPost = z.object({
   title: z.string().trim().min(1),
-  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'use lowercase words separated by hyphens'),
   summary: z.string().trim().min(1),
   date: z.string().date(),
   body: z.string().trim().min(1),
-  tags: z.array(z.string()),
-  author: z.string().min(1),
-  cover: z.string().regex(/^\/media\/.+\.(jpe?g|png|webp)$/i).optional(),
+  tags: z.array(z.string().trim().min(1)).default([]),
+  author: z.string().trim().min(1),
+  cover: z.string().regex(/^\/media\/.+\.(jpe?g|png|webp)$/i, 'must reference an approved /media JPG, PNG, or WebP Media Asset').optional(),
+  coverAlt: z.string().trim().min(1).optional(),
   noindex: z.boolean().default(true)
+}).superRefine((post, context) => {
+  if (post.cover && !post.coverAlt) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['coverAlt'], message: 'is required when cover is provided' });
+  }
 });
 
 async function readJson(file, label) {
@@ -63,6 +69,9 @@ function parse(value, schema, label) {
 const contentRoot = process.env.CONTENT_DIR
   ? resolve(process.env.CONTENT_DIR)
   : fileURLToPath(new URL('../content/', import.meta.url));
+const mediaRoot = process.env.MEDIA_DIR
+  ? resolve(process.env.MEDIA_DIR)
+  : resolve(fileURLToPath(new URL('../public/media/', import.meta.url)));
 const contentPath = file => resolve(contentRoot, file);
 const contentLabel = file => `content/${relative(contentRoot, file).split(sep).join('/')}`;
 
@@ -99,6 +108,43 @@ for (const entry of serviceEntries) {
 }
 
 const postEntries = await loadCollection(contentPath('blog'), 'Blog Post', blogPost);
+async function validateMediaAsset(reference, entry, field) {
+  if (!/^\/media\/.+\.(jpe?g|png|webp)$/i.test(reference)) {
+    throw new Error(`Invalid Blog Post ${entry.file}: ${field} "${reference}" must reference an approved /media JPG, PNG, or WebP Media Asset.`);
+  }
+
+  const mediaPath = resolve(mediaRoot, reference.slice('/media/'.length));
+  if (!mediaPath.startsWith(`${mediaRoot}${sep}`)) {
+    throw new Error(`Invalid Blog Post ${entry.file}: ${field} "${reference}" must stay inside public/media.`);
+  }
+
+  try {
+    const mediaStats = await stat(mediaPath);
+    if (!mediaStats.isFile()) throw new Error('not a file');
+    await access(mediaPath);
+  } catch {
+    throw new Error(`Invalid Blog Post ${entry.file}: ${field} "${reference}" does not exist.`);
+  }
+}
+
+function markdownImageReferences(tokens, references = []) {
+  for (const token of tokens) {
+    if (token.type === 'image') references.push(token.href);
+    if (token.tokens) markdownImageReferences(token.tokens, references);
+    if (token.items) {
+      for (const item of token.items) {
+        markdownImageReferences([item], references);
+      }
+    }
+  }
+  return references;
+}
+
+await Promise.all(postEntries.map(async entry => {
+  if (entry.value.cover) await validateMediaAsset(entry.value.cover, entry, 'cover Media Asset');
+  const imageReferences = markdownImageReferences(marked.lexer(entry.value.body));
+  await Promise.all(imageReferences.map(reference => validateMediaAsset(reference, entry, 'body Media Asset')));
+}));
 const posts = postEntries.map(entry => entry.value);
 const slugs = new Map();
 for (const entry of postEntries) {

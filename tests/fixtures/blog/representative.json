@@ -1,0 +1,12 @@
+{
+  "title": "A Practical Starting Point for Training Conversations",
+  "slug": "practical-starting-point-training-conversations",
+  "summary": "A representative Blog Post summary used only to verify the publishing path.",
+  "date": "2025-01-15",
+  "cover": "/media/social-preview.png",
+  "coverAlt": "KMSC navy and orange brand mark on a light background",
+  "body": "This is a representative Blog Post body for test coverage.\n\n## A considered approach\n\nIt is **not** published in the production content collection.\n\n[Unsafe link](javascript:alert(1))",
+  "tags": ["training", "management systems"],
+  "author": "Dr. Sundar Subramani",
+  "noindex": true
+}

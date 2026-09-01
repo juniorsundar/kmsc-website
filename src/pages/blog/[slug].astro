@@ -1,14 +1,52 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import content from '../../../content/page-content.json';
+import { marked } from 'marked';
+import { blogPosts, formatBlogDate, type BlogPost } from '../../data/blog-posts';
 
-type BlogPost = { title: string; slug: string; summary: string; date: string; body: string; tags: string[]; author: string };
+const markdownRenderer = new marked.Renderer();
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+}[character] ?? character));
+const isAllowedUrl = (value: string, image = false) => {
+  try {
+    const url = new URL(value, 'https://kautilyamsc.com');
+    return image
+      ? url.origin === 'https://kautilyamsc.com' && url.pathname.startsWith('/media/')
+      : ['http:', 'https:', 'mailto:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+markdownRenderer.html = ({ text }) => escapeHtml(text);
+markdownRenderer.link = token => isAllowedUrl(token.href) ? marked.Renderer.prototype.link.call(markdownRenderer, token) : escapeHtml(token.text);
+markdownRenderer.image = token => isAllowedUrl(token.href, true) ? marked.Renderer.prototype.image.call(markdownRenderer, token) : escapeHtml(token.text);
+
 export function getStaticPaths() {
-  const postModules = import.meta.glob('../../../content/blog/*.json', { eager: true, import: 'default' });
-  return (Object.values(postModules) as BlogPost[]).map(post => ({ params: { slug: post.slug }, props: { post } }));
+  return blogPosts.map(post => ({ params: { slug: post.slug }, props: { post } }));
 }
+
 const { post } = Astro.props as { post: BlogPost };
 ---
-<BaseLayout title={`${post.title} | ${content.site.legalName}`} description={post.summary}>
-  <article class="prose section"><p class="eyebrow">KMSC Blog · {post.date}</p><h1>{post.title}</h1><p>{post.summary}</p><p><strong>{post.author}</strong></p><div>{post.body.split('\n').map(paragraph => <p>{paragraph}</p>)}</div>{post.tags.length > 0 && <p>Tags: {post.tags.join(', ')}</p>}</article>
+<BaseLayout
+  title={`${post.title} | ${content.site.legalName}`}
+  description={post.summary}
+  type="article"
+  image={post.cover}
+  noindex={post.noindex}
+  publishedTime={post.date}
+>
+  <article class="prose section">
+    <p class="eyebrow">KMSC Blog</p>
+    <h1>{post.title}</h1>
+    <p>{post.summary}</p>
+    <p><strong>By {post.author}</strong> · <time datetime={post.date}>{formatBlogDate(post.date)}</time></p>
+    {post.cover && <img src={post.cover} alt={post.coverAlt} />}
+    <div set:html={marked.parse(post.body, { renderer: markdownRenderer })} />
+    {post.tags.length > 0 && <p>Tags: {post.tags.join(', ')}</p>}
+  </article>
 </BaseLayout>
