@@ -1,0 +1,12 @@
+{
+  "author": "Dr. Sundar Subramani",
+  "noindex": true,
+  "title": "Example Blog Post",
+  "slug": "example-blog-post",
+  "summary": "This is an example blog post",
+  "coverAlt": "Blog post example",
+  "body": "Something like this",
+  "tags": [
+    "example"
+  ]
+}
