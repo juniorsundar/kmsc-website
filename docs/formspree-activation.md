@@ -9,7 +9,7 @@ These steps must be completed by the KMSC account owner at [Formspree](https://f
 1. Create and verify an account at [formspree.io/register](https://formspree.io/register).
 2. Open [Forms](https://formspree.io/forms), choose **New Form**, and copy the endpoint from its **Integration** tab. It must look like `https://formspree.io/f/<form-id>`.
 3. In the project settings, set **Restrict to Domain** to `kautilyamsc.com` (without `https://` or `www`). Formspree sends off-origin requests to its spam inbox rather than accepting them as normal submissions.
-4. In the form's **Settings** / **Spam protection**, leave CAPTCHA enabled or configure the approved CAPTCHA provider. Keep any provider secret in Formspree; it must not be added to Astro, GitHub, or this repository. The form also includes Formspree's `_gotcha` honeypot.
+4. In the form's **Settings → Spam protection**, enable CAPTCHA and choose **Custom reCAPTCHA**. Enter the matching Secret Key there. The public Site Key is rendered by the website; keep the Secret Key in Formspree only. The form also includes Formspree's `_gotcha` honeypot.
 5. In **Workflow**, add an email notification action for the linked and verified address `drsundar.subramani@outlook.com`.
 6. Submit one harmless test enquiry from `https://kautilyamsc.com/contact/`. Confirm the dashboard delivery and notification. Do not use a real Client Company enquiry as a test.
 
@@ -21,6 +21,8 @@ In the GitHub repository, open **Settings → Secrets and variables → Actions 
 
 - `PUBLIC_FORMSPREE_ENDPOINT`: the public endpoint copied from Formspree
 - `PUBLIC_INDEXING_ENABLED`: `true` only when KMSC has approved the production Page Content
+
+The Google reCAPTCHA Site Key is public configuration and is stored in `src/config/formspree.ts`; it may be overridden with `PUBLIC_FORMSPREE_RECAPTCHA_SITE_KEY` if the key is rotated.
 
 The endpoint is passed to the build as a repository variable when supplied, not a secret; the approved public endpoint is also kept in `content/page-content.json` so local builds use the same form. A production/indexable build fails if the resolved endpoint is still the local placeholder. Preview builds remain available for browser tests without a live provider endpoint.
 

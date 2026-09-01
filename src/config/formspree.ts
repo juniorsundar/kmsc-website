@@ -1,6 +1,9 @@
 const placeholderEndpoint = 'https://formspree.io/f/placeholder';
 const endpointPattern = /^https:\/\/formspree\.io\/f\/[^/]+$/;
 
+// reCAPTCHA site keys are public; the matching secret stays in Formspree.
+export const recaptchaSiteKey = import.meta.env.PUBLIC_FORMSPREE_RECAPTCHA_SITE_KEY || '6LdfqKMtAAAAAC4tQ8NC6Qc8Llx_OCnDUDqr-D2L';
+
 /**
  * Resolve the public Formspree endpoint at build time.
  *

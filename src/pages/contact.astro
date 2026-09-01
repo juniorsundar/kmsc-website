@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import content from '../../content/page-content.json';
-import { getFormspreeEndpoint } from '../config/formspree';
+import { getFormspreeEndpoint, recaptchaSiteKey } from '../config/formspree';
 
 const { site, contact } = content;
 const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
@@ -42,6 +42,8 @@ const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
       </label>
       <span class="field-error" id="privacy-consent-error" role="alert"></span>
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0" />
+      <p id="captcha-help">Spam protection is provided by Google reCAPTCHA.</p>
+      <div class="g-recaptcha" data-sitekey={recaptchaSiteKey} aria-describedby="captcha-help"></div>
       <button class="button" type="submit">Send Training Enquiry</button>
     </form>
     <p>Or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
@@ -106,3 +108,5 @@ const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
     });
   }
 </script>
+
+<script is:inline src="https://www.google.com/recaptcha/api.js" async defer></script>

@@ -48,8 +48,10 @@ test('a delivery failure preserves input and provides the email fallback', async
   await expect(page.getByLabel('Message')).toHaveValue('We would like to discuss a Training Service.');
 });
 
-test('the honeypot is not keyboard reachable and telephone is not requested', async ({ page }) => {
+test('the honeypot is not keyboard reachable and CAPTCHA is presented', async ({ page }) => {
   await page.goto('/contact/');
+  await expect(page.locator('.g-recaptcha')).toHaveAttribute('data-sitekey', /.+/);
+  await expect(page.getByText('Spam protection is provided by Google reCAPTCHA.')).toBeVisible();
   await expect(page.locator('[name="_gotcha"]')).toHaveAttribute('tabindex', '-1');
   await expect(page.locator('[type="tel"]')).toHaveCount(0);
   await expect(page.locator('[name="telephone"]')).toHaveCount(0);
