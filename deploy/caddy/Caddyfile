@@ -4,6 +4,9 @@
 kautilyamsc.com {
     root * /srv/kmsc-website/live
     encode gzip
+    # Formspree's domain restriction checks Referer; retain the origin on
+    # cross-origin form POSTs without exposing the full page URL.
+    header Referrer-Policy "strict-origin-when-cross-origin"
     file_server
 }
 

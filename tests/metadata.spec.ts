@@ -21,7 +21,11 @@ async function build(mode: 'preview' | 'production') {
 
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
-    env: { ...process.env, ...(mode === 'production' ? { PUBLIC_INDEXING_ENABLED: 'true' } : { PUBLIC_INDEXING_ENABLED: 'false' }) },
+    env: {
+      ...process.env,
+      PUBLIC_FORMSPREE_ENDPOINT: mode === 'production' ? 'https://formspree.io/f/test-production-form' : '',
+      ...(mode === 'production' ? { PUBLIC_INDEXING_ENABLED: 'true' } : { PUBLIC_INDEXING_ENABLED: 'false' })
+    },
     encoding: 'utf8'
   });
   if (result.status !== 0) throw new Error(`${mode} build failed:\n${result.stdout}\n${result.stderr}`);

@@ -12,6 +12,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Build configuration
+        env:
+          PUBLIC_FORMSPREE_ENDPOINT: ${{ vars.PUBLIC_FORMSPREE_ENDPOINT }}
+          PUBLIC_INDEXING_ENABLED: ${{ vars.PUBLIC_INDEXING_ENABLED }}
+        run: |
+          echo "PUBLIC_FORMSPREE_ENDPOINT=$PUBLIC_FORMSPREE_ENDPOINT" >> "$GITHUB_ENV"
+          echo "PUBLIC_INDEXING_ENABLED=$PUBLIC_INDEXING_ENABLED" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium
       - run: npm run validate
       - run: npm test

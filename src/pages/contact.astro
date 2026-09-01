@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import content from '../../content/page-content.json';
+import { getFormspreeEndpoint } from '../config/formspree';
 
 const { site, contact } = content;
-const endpoint = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || site.formspreeEndpoint || 'https://formspree.io/f/placeholder';
+const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
 ---
 <BaseLayout title={`Contact | ${site.legalName}`}>
   <section class="page-heading">

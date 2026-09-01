@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const endpoint = 'https://formspree.io/f/placeholder';
+const endpoint = 'https://formspree.io/f/mgaekezn';
 
 async function fillEnquiry(page: import('@playwright/test').Page) {
   await page.getByLabel('Name').fill('Asha Rao');
