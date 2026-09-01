@@ -1,0 +1,13 @@
+{
+  "body": "Test blog post",
+  "summary": "This is an example post",
+  "author": "Dr. Sundar Subramani",
+  "slug": "example-blog-post",
+  "date": "2026-09-01",
+  "noindex": true,
+  "coverAlt": "Desc",
+  "title": "Example",
+  "tags": [
+    "example"
+  ]
+}
