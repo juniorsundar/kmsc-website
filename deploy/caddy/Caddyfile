@@ -1,0 +1,7 @@
+# Pre-DNS static serving configuration. Ticket 10 supplies the production hostnames.
+# Caddy reads the atomic live symlink; it never writes to the release tree.
+:80 {
+    root * /srv/kmsc-website/live
+    encode gzip
+    file_server
+}

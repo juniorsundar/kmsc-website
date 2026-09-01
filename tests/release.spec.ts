@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const script = join(process.cwd(), 'scripts/activate-static-release.sh');
+const rollbackScript = join(process.cwd(), 'scripts/rollback-static-release.sh');
 const required = [
   'index.html', 'about/index.html', 'services/index.html', 'blog/index.html',
   'contact/index.html', 'privacy/index.html', 'admin/index.html',
@@ -24,6 +25,7 @@ async function setup() {
   const root = await mkdtemp(join(tmpdir(), 'kmsc-release-'));
   await mkdir(join(root, '.incoming', 'next'), { recursive: true });
   await mkdir(join(root, 'releases', 'previous'), { recursive: true });
+  await artifact(join(root, 'releases', 'previous'));
   await writeFile(join(root, 'releases', 'previous', 'index.html'), 'previous');
   await symlink(join(root, 'releases', 'previous'), join(root, 'live'));
   return root;
@@ -31,6 +33,10 @@ async function setup() {
 
 function activate(root: string, id = 'next', retain = '5') {
   return execFileSync('bash', [script, root, id, retain], { encoding: 'utf8' });
+}
+
+function rollback(root: string, id: string) {
+  return execFileSync('bash', [rollbackScript, root, id], { encoding: 'utf8' });
 }
 
 test('failed artifact verification preserves the current live release', async () => {
@@ -58,6 +64,19 @@ test('successful activation swaps live atomically and bounds history', async () 
     expect(entries).toContain('next');
     expect(entries).not.toContain('old-1');
     expect(entries).not.toContain('previous');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('rollback verifies a retained release before atomically selecting it', async () => {
+  const root = await setup();
+  try {
+    await artifact(join(root, 'releases', 'previous'));
+    expect(rollback(root, 'previous')).toContain('rolled back to previous');
+    expect(await readlink(join(root, 'live'))).toBe(join(root, 'releases', 'previous'));
+
+    await rm(join(root, 'releases', 'previous', 'index.html'));
+    expect(() => rollback(root, 'previous')).toThrow();
+    expect(await readlink(join(root, 'live'))).toBe(join(root, 'releases', 'previous'));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
