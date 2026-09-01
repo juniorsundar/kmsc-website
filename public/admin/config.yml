@@ -2,10 +2,9 @@ backend:
   name: github
   repo: juniorsundar/kmsc-website
   branch: main
-  # Replace the placeholder with the deployed Worker URL after Cloudflare setup.
-  base_url: https://kmsc-editor-auth.example.workers.dev
+  base_url: https://kmsc-editor-auth.juniorsundar.workers.dev
   auth_endpoint: auth
-  app_id: placeholder
+  app_id: Ov23lifEbRHJ6WHLnTBm
 media_folder: public/media
 public_folder: /media
 media_library:
