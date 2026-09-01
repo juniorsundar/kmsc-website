@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readdir, readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, relative } from 'node:path';
 
@@ -23,7 +24,8 @@ async function filesUnder(directory: string): Promise<string[]> {
 }
 
 function trackedFiles() {
-  return execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+  return execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' })
+    .trim().split('\n').filter(path => path && existsSync(path));
 }
 
 async function assertNoCredentials(paths: string[]) {
@@ -38,6 +40,13 @@ async function assertNoCredentials(paths: string[]) {
 
 test('tracked files contain no OAuth credentials or private keys', async () => {
   await assertNoCredentials(trackedFiles());
+});
+
+test('repository history contains no OAuth credentials or private keys', async () => {
+  const history = execFileSync('git', ['log', '--all', '--format=', '--patch', '--', '.'], { encoding: 'utf8' });
+  for (const pattern of credentialPatterns) {
+    expect(history, `git history matches ${pattern}`).not.toMatch(pattern);
+  }
 });
 
 test('generated artifacts contain no OAuth credentials or private keys', async () => {
