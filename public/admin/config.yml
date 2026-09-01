@@ -89,7 +89,7 @@ collections:
       - { name: title, label: Title, widget: string, hint: "Use a clear, specific title for the Blog Post. Avoid unsupported outcomes, statistics, certifications, or client claims." }
       - { name: slug, label: URL slug, widget: string, hint: "Stable lowercase URL words separated by hyphens; must be unique. Changing it changes the public URL. Example: practical-iso-training" }
       - { name: summary, label: Summary, widget: text, hint: "A concise description shown on the Blog index and used as search metadata." }
-      - { name: date, label: Publication date, widget: date, format: YYYY-MM-DD, hint: "Use the intended publication date, not the date you happen to edit the Blog Post." }
+      - { name: date, label: Publication date, widget: datetime, date_format: YYYY-MM-DD, time_format: false, hint: "Use the intended publication date, not the date you happen to edit the Blog Post." }
       - { name: cover, label: Cover image, widget: image, required: false, hint: "Optional Media Asset. Use an approved JPG, PNG, or WebP image only." }
       - { name: coverAlt, label: Cover image description, widget: string, required: false, hint: "Required when a cover image is provided. Describe the image for screen-reader users." }
       - { name: body, label: Body, widget: markdown, hint: "Write the approved Blog Post in clear paragraphs. Do not add fabricated case studies, testimonials, or claims." }
