@@ -253,6 +253,12 @@ test('Decap config does not expose a provider secret', async ({ page }) => {
   expect(response?.ok()).toBeTruthy();
   const text = await response!.text();
   expect(text).not.toMatch(/secret|token|password|oauth.*key/i);
+  expect(text).toContain('repo: juniorsundar/kmsc-website');
+  expect(text).toContain('branch: main');
+  expect(text).toMatch(/base_url:\s+https:\/\/[^\s#]+/);
+  expect(text).toContain('auth_endpoint: auth');
+  expect(text).toMatch(/app_id:\s+[^\s#]+/);
+  expect(text).toContain('publish_mode: simple');
   // Verify collections and the editable Training Service contract exist
   expect(text).toContain('page-content');
   expect(text).toContain('servicesPage');

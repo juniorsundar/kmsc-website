@@ -1,0 +1,6 @@
+name = "kmsc-editor-auth"
+main = "oauth-proxy.mjs"
+compatibility_date = "2024-01-01"
+
+# GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET are Cloudflare secrets.
+# Set them with `wrangler secret put`; never add them to this file.
