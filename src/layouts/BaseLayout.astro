@@ -2,6 +2,7 @@
 import content from '../../content/page-content.json';
 const { site } = content;
 const { title = `${site.legalName} | KMSC`, description = site.description, canonical = Astro.url } = Astro.props;
+const year = new Date().getFullYear();
 ---
 <!doctype html>
 <html lang="en">
@@ -11,9 +12,13 @@ const { title = `${site.legalName} | KMSC`, description = site.description, cano
     <meta name="description" content={description} />
     {site.noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL(site.socialPreview, Astro.site || 'https://kautilyamsc.com').href} />
     <title>{title}</title>
   </head>
   <body>
@@ -23,7 +28,17 @@ const { title = `${site.legalName} | KMSC`, description = site.description, cano
       <nav aria-label="Main navigation"><a href="/">Home</a><a href="/about/">About</a><a href="/services/">Services</a><a href="/blog/">Blog</a><a href="/contact/">Contact</a></nav>
     </header>
     <main id="main"><slot /></main>
-    <footer class="site-footer"><div><strong>{site.legalName}</strong><p>Professional training for Client Companies.</p></div><div><a href={`mailto:${site.email}`}>{site.email}</a><a href="/privacy/">Privacy</a><small>© {new Date().getFullYear()} KMSC</small></div></footer>
+    <footer class="site-footer" role="contentinfo">
+      <div>
+        <strong>{site.legalName}</strong>
+        <p>{site.footerTagline}</p>
+      </div>
+      <div>
+        <a href={`mailto:${site.email}`}>{site.email}</a>
+        <a href="/privacy/">Privacy</a>
+        <small>&copy; {year} {site.legalName}</small>
+      </div>
+    </footer>
   </body>
 </html>
 <style is:global>

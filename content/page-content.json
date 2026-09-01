@@ -3,9 +3,14 @@
     "legalName": "Kautilya Management System Consultancy Pvt. Ltd.",
     "email": "drsundar.subramani@outlook.com",
     "cta": "Discuss Your Training Needs",
-    "author": { "name": "Dr. Sundar Subramani", "role": "Director, Principal Consultant" },
+    "author": {
+      "name": "Dr. Sundar Subramani",
+      "role": "Director, Principal Consultant"
+    },
     "description": "KMSC provides professional training for Client Companies.",
-    "noindex": true
+    "noindex": true,
+    "socialPreview": "/media/social-preview.png",
+    "footerTagline": "Professional training for Client Companies."
   },
   "home": {
     "eyebrow": "Kautilya Management System Consultancy Pvt. Ltd.",
@@ -14,9 +19,23 @@
     "servicesHeading": "Training Services",
     "servicesIntro": "Our initial offerings are presented as a starting point for conversation. Detailed Page Content will be added as it is approved."
   },
+  "about": {
+    "heading": "People behind the work.",
+    "intro": "KMSC is led by an experienced management systems professional committed to practical, results-oriented training.",
+    "founderBio": "Dr. Sundar Subramani brings extensive experience in management system consultancy to his role at KMSC. Further details about his background and approach will be added as approved Page Content becomes available."
+  },
   "services": [
-    { "name": "Management System Design and Implementation", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." },
-    { "name": "Competency Assessment and Development", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." },
-    { "name": "Leadership Coaching", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." }
+    {
+      "name": "Management System Design and Implementation",
+      "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach."
+    },
+    {
+      "name": "Competency Assessment and Development",
+      "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach."
+    },
+    {
+      "name": "Leadership Coaching",
+      "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach."
+    }
   ]
 }

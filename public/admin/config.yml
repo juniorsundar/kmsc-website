@@ -4,6 +4,9 @@ backend:
   branch: main
 media_folder: public/media
 public_folder: /media
+media_library:
+  max_file_size: 2048000
+  folder_support: false
 locale: en
 publish_mode: simple
 collections:
@@ -11,12 +14,48 @@ collections:
     label: Page Content
     files:
       - name: pages
-        label: Home and Site Settings
+        label: Site Settings and Pages
         file: content/page-content.json
         fields:
-          - { name: site, label: Site settings, widget: object, fields: [ { name: legalName, widget: string }, { name: email, widget: string }, { name: cta, widget: string }, { name: author, label: Default author, widget: object, fields: [ { name: name, widget: string }, { name: role, widget: string } ] }, { name: description, widget: text }, { name: noindex, widget: boolean } ] }
-          - { name: home, label: Home, widget: object, fields: [ { name: eyebrow, widget: string }, { name: headline, widget: string }, { name: intro, widget: text }, { name: servicesHeading, widget: string }, { name: servicesIntro, widget: text } ] }
-          - { name: services, label: Training Services, widget: list, fields: [ { name: name, widget: string }, { name: description, widget: text } ] }
+          - name: site
+            label: Global Settings
+            widget: object
+            fields:
+              - { name: legalName, label: Legal name, widget: string, hint: "Must be exactly: Kautilya Management System Consultancy Pvt. Ltd." }
+              - { name: email, label: Public email, widget: string }
+              - { name: cta, label: Primary call to action, widget: string, hint: "Must be exactly: Discuss Your Training Needs" }
+              - name: author
+                label: Default author
+                widget: object
+                fields:
+                  - { name: name, label: Name, widget: string }
+                  - { name: role, label: Role, widget: string }
+              - { name: description, label: Default search description, widget: text }
+              - { name: noindex, label: Exclude from search engines, widget: boolean }
+              - { name: socialPreview, label: Social preview image, widget: image, hint: "Approved JPG, PNG, or WebP. Recommended 1200×630 pixels." }
+              - { name: footerTagline, label: Footer tagline, widget: text }
+          - name: home
+            label: Home
+            widget: object
+            fields:
+              - { name: eyebrow, label: Eyebrow text, widget: string }
+              - { name: headline, label: Headline, widget: string }
+              - { name: intro, label: Introduction, widget: text }
+              - { name: servicesHeading, label: Services heading, widget: string }
+              - { name: servicesIntro, label: Services introduction, widget: text }
+          - name: about
+            label: About
+            widget: object
+            fields:
+              - { name: heading, label: Page heading, widget: string }
+              - { name: intro, label: Introduction, widget: text }
+              - { name: founderBio, label: Founder biography, widget: text, hint: "Restrained placeholder until approved copy is ready. Do not add fabricated claims, testimonials, or statistics." }
+          - name: services
+            label: Training Services
+            widget: list
+            fields:
+              - { name: name, label: Service name, widget: string }
+              - { name: description, label: Description, widget: text, hint: "Restrained placeholder. Do not add unsupported outcomes, accreditations, statistics, or client claims." }
   - name: blog
     label: Blog Posts
     folder: content/blog
@@ -25,12 +64,12 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { name: title, widget: string }
-      - { name: slug, widget: string, hint: Lowercase words separated by hyphens; must be unique. }
-      - { name: summary, widget: text }
-      - { name: date, widget: date, format: YYYY-MM-DD }
-      - { name: cover, widget: image, required: false }
-      - { name: body, widget: markdown }
-      - { name: tags, widget: list, required: false }
-      - { name: author, widget: string, default: Dr. Sundar Subramani }
-      - { name: noindex, widget: boolean, default: true }
+      - { name: title, label: Title, widget: string }
+      - { name: slug, label: URL slug, widget: string, hint: "Lowercase words separated by hyphens; must be unique. Example: practical-iso-training" }
+      - { name: summary, label: Summary, widget: text, hint: "A concise description shown on the Blog index and in search results." }
+      - { name: date, label: Publication date, widget: date, format: YYYY-MM-DD }
+      - { name: cover, label: Cover image, widget: image, required: false, hint: "Optional. Approved JPG, PNG, or WebP only." }
+      - { name: body, label: Body, widget: markdown }
+      - { name: tags, label: Tags, widget: list, required: false }
+      - { name: author, label: Author, widget: string, default: Dr. Sundar Subramani }
+      - { name: noindex, label: Exclude from search engines, widget: boolean, default: true }
