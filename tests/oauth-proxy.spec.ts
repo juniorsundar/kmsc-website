@@ -38,6 +38,7 @@ test.describe('OAuth proxy', () => {
     expect(response.status).toBe(200);
     const body = await response.text();
     expect(body).toContain('authorizing:github');
+    expect(body).toContain('https://kautilyamsc.com');
     expect(body).toContain('https://github.com/login/oauth/authorize');
     expect(body).toContain('client_id=local-client-id');
     expect(body).toContain('scope=public_repo');

@@ -53,7 +53,8 @@ async function authenticate(request, env) {
   authorization.searchParams.set('redirect_uri', redirect);
   authorization.searchParams.set('scope', requestUrl.searchParams.get('scope') || 'public_repo');
   authorization.searchParams.set('state', state);
-  return new Response(authorizationPage(authorization.toString(), requestUrl.origin).body, {
+  const messageOrigin = env.CMS_ORIGIN || 'https://kautilyamsc.com';
+  return new Response(authorizationPage(authorization.toString(), messageOrigin).body, {
     headers: {
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'no-store',
