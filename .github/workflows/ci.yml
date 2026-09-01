@@ -16,11 +16,53 @@ jobs:
       - run: npm run validate
       - run: npm test
       - run: npm run build
+      - name: Package the validated production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-site
+          path: dist
+          if-no-files-found: error
+          include-hidden-files: true
 
   deploy:
     needs: verify
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: production-static-release
+      cancel-in-progress: false
     steps:
-      - run: echo "Deployment is intentionally gated for production account setup."
+      - uses: actions/checkout@v4
+      - name: Download the exact verified artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: static-site
+          path: dist
+      - name: Configure the restricted deployment key
+        env:
+          KMSC_DEPLOY_PRIVATE_KEY: ${{ secrets.KMSC_DEPLOY_PRIVATE_KEY }}
+          KMSC_DEPLOY_KNOWN_HOSTS: ${{ secrets.KMSC_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$KMSC_DEPLOY_PRIVATE_KEY"
+          test -n "$KMSC_DEPLOY_KNOWN_HOSTS"
+          mkdir -p ~/.ssh
+          umask 077
+          printf '%s\n' "$KMSC_DEPLOY_PRIVATE_KEY" > ~/.ssh/kmsc-deploy
+          printf '%s\n' "$KMSC_DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload and atomically activate the release
+        env:
+          KMSC_DEPLOY_HOST: ${{ secrets.KMSC_DEPLOY_HOST }}
+          KMSC_DEPLOY_USER: ${{ secrets.KMSC_DEPLOY_USER }}
+          KMSC_RELEASE_ROOT: ${{ secrets.KMSC_RELEASE_ROOT }}
+          RELEASE_ID: ${{ github.run_id }}-${{ github.sha }}
+        run: |
+          test -n "$KMSC_DEPLOY_HOST"
+          test -n "$KMSC_DEPLOY_USER"
+          test -n "$KMSC_RELEASE_ROOT"
+          remote="${KMSC_DEPLOY_USER}@${KMSC_DEPLOY_HOST}"
+          incoming="$KMSC_RELEASE_ROOT/.incoming/$RELEASE_ID"
+          ssh -i ~/.ssh/kmsc-deploy "$remote" "mkdir -p '$incoming' '$KMSC_RELEASE_ROOT/releases'"
+          rsync -az --delete -e "ssh -i ~/.ssh/kmsc-deploy" dist/ "$remote:$incoming/"
+          scp -i ~/.ssh/kmsc-deploy scripts/activate-static-release.sh "$remote:$KMSC_RELEASE_ROOT/.activate-static-release.sh"
+          ssh -i ~/.ssh/kmsc-deploy "$remote" "bash '$KMSC_RELEASE_ROOT/.activate-static-release.sh' '$KMSC_RELEASE_ROOT' '$RELEASE_ID' 5"
