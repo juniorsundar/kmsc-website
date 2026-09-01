@@ -12,6 +12,23 @@ function page(message) {
   });
 }
 
+function authorizationPage(authorization, origin) {
+  const target = JSON.stringify(authorization);
+  const messageOrigin = JSON.stringify(origin);
+  return new Response(`<!doctype html><meta charset="utf-8"><title>KMSC Editor authentication</title><script>
+    const openerOrigin = ${messageOrigin};
+    const authorizationUrl = ${target};
+    window.opener && window.opener.postMessage('authorizing:github', openerOrigin);
+    window.addEventListener('message', event => {
+      if (event.origin === openerOrigin && event.data === 'authorizing:github') {
+        window.location.href = authorizationUrl;
+      }
+    });
+  </script>`, {
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }
+  });
+}
+
 function resultPage(status, payload, origin) {
   const serialized = JSON.stringify(payload).replace(/</g, '\\u003c');
   const message = `authorization:github:${status}:${serialized}`;
@@ -34,14 +51,13 @@ async function authenticate(request, env) {
   const authorization = new URL(GITHUB_AUTHORIZE_URL);
   authorization.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
   authorization.searchParams.set('redirect_uri', redirect);
-  authorization.searchParams.set('scope', 'public_repo');
+  authorization.searchParams.set('scope', requestUrl.searchParams.get('scope') || 'public_repo');
   authorization.searchParams.set('state', state);
-  return new Response(null, {
-    status: 302,
+  return new Response(authorizationPage(authorization.toString(), requestUrl.origin).body, {
     headers: {
-      location: authorization.toString(),
-      'set-cookie': `${stateCookie}=${state}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=600`,
-      'cache-control': 'no-store'
+      'content-type': 'text/html; charset=utf-8',
+      'cache-control': 'no-store',
+      'set-cookie': `${stateCookie}=${state}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=600`
     }
   });
 }

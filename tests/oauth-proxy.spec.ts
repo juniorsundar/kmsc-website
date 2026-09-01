@@ -14,8 +14,8 @@ async function configuredCallback(path: string) {
     GITHUB_CLIENT_SECRET: clientSecret,
     CMS_ORIGIN: 'https://auth.example.test'
   });
-  const state = new URL(authResponse.headers.get('location')!).searchParams.get('state');
   const cookie = authResponse.headers.get('set-cookie')!.split(';', 1)[0];
+  const state = cookie.split('=', 2)[1];
   return oauthFetch(new Request(`https://auth.example.test${path}&state=${state}`, { headers: { cookie } }), {
     GITHUB_CLIENT_ID: 'local-client-id',
     GITHUB_CLIENT_SECRET: clientSecret,
@@ -30,18 +30,19 @@ test.describe('OAuth proxy', () => {
     expect(await response.text()).toContain('dry-run');
   });
 
-  test('redirects configured authentication to GitHub without exposing the secret', async () => {
+  test('starts configured authentication with a Decap handshake without exposing the secret', async () => {
     const response = await oauthFetch(request('/auth'), {
       GITHUB_CLIENT_ID: 'local-client-id',
       GITHUB_CLIENT_SECRET: ['local', 'client', 'secret'].join('-')
     });
-    const location = response.headers.get('location') ?? '';
-    expect(response.status).toBe(302);
-    expect(location).toContain('https://github.com/login/oauth/authorize');
-    expect(location).toContain('client_id=local-client-id');
-    expect(location).toContain('scope=public_repo');
-    expect(location).toContain('state=');
-    expect(location).not.toContain(['local', 'client', 'secret'].join('-'));
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain('authorizing:github');
+    expect(body).toContain('https://github.com/login/oauth/authorize');
+    expect(body).toContain('client_id=local-client-id');
+    expect(body).toContain('scope=public_repo');
+    expect(response.headers.get('set-cookie')).toContain('kmsc_oauth_state=');
+    expect(body).not.toContain(['local', 'client', 'secret'].join('-'));
   });
 
   test('exchanges a code and never sends the client secret to the browser', async () => {
