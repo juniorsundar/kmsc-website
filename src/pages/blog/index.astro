@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import content from '../../../content/page-content.json';
+const { site } = content;
+type BlogPost = { title: string; slug: string; summary: string };
+const postModules = import.meta.glob('../../../content/blog/*.json', { eager: true, import: 'default' });
+const blogPosts = Object.values(postModules) as BlogPost[];
+---
+<BaseLayout title={`Blog | ${site.legalName}`}><section class="page-heading"><p class="eyebrow">KMSC Blog</p><h1>Insights</h1></section><section class="section">{blogPosts.length === 0 ? <p class="empty">Insights coming soon. Published Blog Posts will appear here.</p> : <div class="cards">{blogPosts.map(post => <article class="card"><h2><a href={`/blog/${post.slug}/`}>{post.title}</a></h2><p>{post.summary}</p></article>)}</div>}</section></BaseLayout>

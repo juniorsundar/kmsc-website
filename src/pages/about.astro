@@ -1,0 +1,6 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import content from '../../content/page-content.json';
+const { site } = content;
+---
+<BaseLayout title={`About | ${site.legalName}`}><section class="page-heading"><p class="eyebrow">About KMSC</p><h1>People behind the work.</h1></section><section class="prose section"><h2>{site.author.name}</h2><p><strong>{site.author.role}</strong></p><p>Information about KMSC and its leadership will be developed here as approved Page Content becomes available.</p></section></BaseLayout>

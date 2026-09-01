@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import content from '../../../content/page-content.json';
+
+type BlogPost = { title: string; slug: string; summary: string; date: string; body: string; tags: string[]; author: string };
+export function getStaticPaths() {
+  const postModules = import.meta.glob('../../../content/blog/*.json', { eager: true, import: 'default' });
+  return (Object.values(postModules) as BlogPost[]).map(post => ({ params: { slug: post.slug }, props: { post } }));
+}
+const { post } = Astro.props as { post: BlogPost };
+---
+<BaseLayout title={`${post.title} | ${content.site.legalName}`} description={post.summary}>
+  <article class="prose section"><p class="eyebrow">KMSC Blog · {post.date}</p><h1>{post.title}</h1><p>{post.summary}</p><p><strong>{post.author}</strong></p><div>{post.body.split('\n').map(paragraph => <p>{paragraph}</p>)}</div>{post.tags.length > 0 && <p>Tags: {post.tags.join(', ')}</p>}</article>
+</BaseLayout>

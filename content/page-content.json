@@ -1,0 +1,22 @@
+{
+  "site": {
+    "legalName": "Kautilya Management System Consultancy Pvt. Ltd.",
+    "email": "drsundar.subramani@outlook.com",
+    "cta": "Discuss Your Training Needs",
+    "author": { "name": "Dr. Sundar Subramani", "role": "Director, Principal Consultant" },
+    "description": "KMSC provides professional training for Client Companies.",
+    "noindex": true
+  },
+  "home": {
+    "eyebrow": "Kautilya Management System Consultancy Pvt. Ltd.",
+    "headline": "Practical training for stronger management systems.",
+    "intro": "KMSC provides professional training for Client Companies. Explore our initial Training Services and get in touch to discuss your needs.",
+    "servicesHeading": "Training Services",
+    "servicesIntro": "Our initial offerings are presented as a starting point for conversation. Detailed Page Content will be added as it is approved."
+  },
+  "services": [
+    { "name": "Management System Design and Implementation", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." },
+    { "name": "Competency Assessment and Development", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." },
+    { "name": "Leadership Coaching", "description": "Placeholder description for this Training Service. Final Page Content will describe its scope and approach." }
+  ]
+}
