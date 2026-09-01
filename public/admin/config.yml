@@ -7,9 +7,6 @@ backend:
   app_id: Ov23lifEbRHJ6WHLnTBm
 media_folder: public/media
 public_folder: /media
-media_library:
-  max_file_size: 2048000
-  folder_support: false
 locale: en
 publish_mode: simple
 collections:
