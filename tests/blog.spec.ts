@@ -105,6 +105,13 @@ test('representative Blog Post renders from a production build', async ({ page }
     await expect(representativeCard.locator('time[datetime="2025-01-15"]')).toHaveText('15 January 2025');
     await expect(representativeCard.getByText('Tags: training, management systems', { exact: true })).toBeVisible();
     await expect(representativeCard.locator('img')).toHaveCount(1);
+    const cardImage = representativeCard.locator('img');
+    const cardImageBox = await cardImage.boundingBox();
+    const cardBox = await representativeCard.boundingBox();
+    expect(cardImageBox).not.toBeNull();
+    expect(cardBox).not.toBeNull();
+    expect(cardImageBox!.width).toBeLessThanOrEqual(cardBox!.width);
+    expect(cardImageBox!.height).toBeLessThanOrEqual(220);
 
     await page.goto(`${fixtureServer.url}/blog/blog-post-without-optional-media/`);
     await expect(page.locator('article.prose img')).toHaveCount(0);
