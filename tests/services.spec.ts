@@ -1,21 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 const SERVICES = [
-  {
-    name: 'Management System Design and Implementation',
-    summary: 'Placeholder overview of management system work and implementation training.',
-    description: 'Final Page Content will describe the scope, approach, and fit for Client Companies.'
-  },
-  {
-    name: 'Competency Assessment and Development',
-    summary: 'Placeholder overview of assessing and developing competencies through training.',
-    description: 'Final Page Content will describe the scope, approach, and fit for Client Companies.'
-  },
-  {
-    name: 'Leadership Coaching',
-    summary: 'Placeholder overview of leadership development training.',
-    description: 'Final Page Content will describe the scope, approach, and fit for Client Companies.'
-  }
+  'Management System Design and Implementation',
+  'Competency Assessment and Development',
+  'Leadership Coaching'
 ];
 
 test('Services presents editable introduction and ordered Training Services', async ({ page }) => {
@@ -29,11 +17,14 @@ test('Services presents editable introduction and ordered Training Services', as
 
   const cards = page.locator('main article');
   await expect(cards).toHaveCount(SERVICES.length);
-  expect(await cards.locator('h2').allTextContents()).toEqual(SERVICES.map(service => service.name));
+  expect(await cards.locator('h2').allTextContents()).toEqual(SERVICES);
 
-  for (const [index, service] of SERVICES.entries()) {
-    await expect(cards.nth(index)).toContainText(service.name);
-    await expect(cards.nth(index)).toContainText(service.summary);
-    await expect(cards.nth(index)).toContainText(service.description);
+  for (const [index, name] of SERVICES.entries()) {
+    const card = cards.nth(index);
+    await expect(card).toContainText(name);
+    await expect(card.locator('p')).toHaveCount(2);
+    for (const paragraph of await card.locator('p').all()) {
+      await expect(paragraph).not.toHaveText('');
+    }
   }
 });

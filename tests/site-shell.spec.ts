@@ -59,7 +59,7 @@ test('Home presents restrained training-focused copy and CTA', async ({ page }) 
   await expect(page.getByRole('link', { name: 'Discuss Your Training Needs' })).toHaveAttribute('href', '/contact/');
   // Three training services visible
   for (const name of ['Management System Design and Implementation', 'Competency Assessment and Development', 'Leadership Coaching']) {
-    await expect(page.getByText(name)).toBeVisible();
+    await expect(page.getByRole('heading', { name })).toBeVisible();
   }
 });
 
