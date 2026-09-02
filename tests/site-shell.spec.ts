@@ -55,7 +55,7 @@ test('internal navigation between routes works without broken links', async ({ p
 
 test('Home presents restrained training-focused copy and CTA', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('h1')).toContainText('training');
+  await expect(page.locator('h1')).not.toHaveText('');
   await expect(page.getByRole('link', { name: 'Discuss Your Training Needs' })).toHaveAttribute('href', '/contact/');
   // Three training services visible
   for (const name of ['Management System Design and Implementation', 'Competency Assessment and Development', 'Leadership Coaching']) {

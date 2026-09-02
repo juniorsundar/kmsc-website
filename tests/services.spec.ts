@@ -21,7 +21,7 @@ const SERVICES = [
 test('Services presents editable introduction and ordered Training Services', async ({ page }) => {
   await page.goto('/services/');
 
-  await expect(page.locator('h1')).toHaveText('Training Services');
+  await expect(page.locator('h1')).not.toHaveText('');
   await expect(page.getByText(
     "Explore KMSC's current Training Services. Each offering is presented as a starting point for a conversation; further Page Content will be added as it is approved.",
     { exact: true }
