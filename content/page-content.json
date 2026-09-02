@@ -1,28 +1,28 @@
 {
   "site": {
     "legalName": "Kautilya Management System Consultancy Pvt. Ltd.",
-    "email": "drsundar.subramani@outlook.com",
-    "cta": "Discuss Your Training Needs",
+    "formspreeEndpoint": "https://formspree.io/f/mgaekezn",
     "author": {
       "name": "Dr. Sundar Subramani",
       "role": "Director, Principal Consultant"
     },
-    "description": "KMSC provides professional training for Client Companies.",
+    "cta": "Discuss Your Training Needs",
     "noindex": true,
+    "footerTagline": "hink Strategically. Build Systematically. Lead Decisively",
     "socialPreview": "/media/social-preview.png",
-    "footerTagline": "Professional training for Client Companies.",
-    "formspreeEndpoint": "https://formspree.io/f/mgaekezn"
+    "email": "drsundar.subramani@outlook.com",
+    "description": "KMSC provides professional training for Client Companies."
   },
   "home": {
     "eyebrow": "Kautilya Management System Consultancy Pvt. Ltd.",
     "headline": "Practical training for stronger management systems.",
-    "intro": "KMSC provides professional training for Client Companies. Explore our initial Training Services and get in touch to discuss your needs.",
-    "servicesHeading": "Training Services",
+    "intro": "KMSC supports organisations in developing and implementing robust management systems by assessing the competence of their people and evaluating existing processes through a structured, risk-based business audit methodology.\n\nWe identify gaps, operational risks, and opportunities for improvement, and provide practical guidance and targeted training aligned with internationally recognised best practices. Our approach is tailored to the organisation’s specific operating environment, ensuring that management systems are not only compliant, but also effective, sustainable, and capable of delivering improved operational performance and business outcomes.",
+    "servicesHeading": "Where Strategy Becomes System, and Leaders Become Legacies.",
     "servicesIntro": "Our initial offerings are presented as a starting point for conversation. Detailed Page Content will be added as it is approved."
   },
   "about": {
     "heading": "People behind the work.",
-    "intro": "KMSC is led by an experienced management systems professional committed to practical, results-oriented training.",
+    "intro": "KMSC is led by an experienced management systems professional having several years of consultancy and auditing experience worldwide across different industrial manufacturing service marine industries ",
     "founderBio": "Dr. Sundar Subramani brings extensive experience in management system consultancy to his role at KMSC. Further details about his background and approach will be added as approved Page Content becomes available."
   },
   "servicesPage": {
