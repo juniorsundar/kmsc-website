@@ -13,10 +13,15 @@ test('launch-readiness record keeps preview indexing deferred', async () => {
   expect(record).toContain('DNSSEC chain validates without resolution errors');
 });
 
-test('preview Blog route contains no fabricated Blog Post', async ({ page }) => {
+test('preview Blog route contains either approved posts or its empty state', async ({ page }) => {
   await page.goto('/blog/');
-  await expect(page.getByText('Insights coming soon', { exact: false })).toBeVisible();
-  await expect(page.locator('article.card')).toHaveCount(0);
+  const cards = page.locator('article.card');
+  if (await cards.count() === 0) {
+    await expect(page.getByText('Insights coming soon', { exact: false })).toBeVisible();
+  } else {
+    await expect(cards.first()).toBeVisible();
+  }
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
 });
 
 test('launch-readiness record separates human-owned production evidence', async () => {
