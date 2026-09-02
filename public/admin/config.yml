@@ -91,7 +91,7 @@ collections:
       - { name: summary, label: Summary, widget: text, hint: "A concise description shown on the Blog index and used as search metadata." }
       - { name: date, label: Publication date, widget: datetime, date_format: YYYY-MM-DD, time_format: false, hint: "Use the intended publication date, not the date you happen to edit the Blog Post." }
       - { name: cover, label: Cover image, widget: image, required: false, hint: "Optional Media Asset. Use an approved JPG, PNG, or WebP image only." }
-      - { name: coverAlt, label: Cover image description, widget: string, required: false, hint: "Required when a cover image is provided. Describe the image for screen-reader users." }
+      - { name: coverAlt, label: Cover image description, widget: string, required: false, hint: "Optional when no cover is used; required when a cover image is provided. Describe the image for screen-reader users." }
       - { name: body, label: Body, widget: markdown, hint: "Write the approved Blog Post in clear paragraphs. Do not add fabricated case studies, testimonials, or claims." }
       - { name: tags, label: Tags, widget: list, required: false, hint: "Add a few relevant lowercase topics; leave empty if none are approved." }
       - { name: author, label: Blog Post byline, widget: string, default: Dr. Sundar Subramani, hint: "Default: Dr. Sundar Subramani. Do not repeat the Director, Principal Consultant role here." }

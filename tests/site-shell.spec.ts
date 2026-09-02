@@ -273,6 +273,7 @@ test('Decap config does not expose a provider secret', async ({ page }) => {
   expect(text).toContain('name: date');
   expect(text).toContain('name: cover');
   expect(text).toContain('name: coverAlt');
+  expect(text).toContain('Optional when no cover is used; required when a cover image is provided.');
   expect(text).toContain('blog');
 });
 

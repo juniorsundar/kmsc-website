@@ -60,14 +60,21 @@ test('generated artifacts contain no OAuth credentials or private keys', async (
 });
 
 test('asset directories contain only approved project assets', async () => {
-  const allowed = new Map([
-    ['public/media', /^social-preview\.(png|jpe?g|webp)$/i],
-    ['src/assets/brand', /^kmsc-(acronym(?:-full)?|head-and-ideas)\.png$/i]
-  ]);
+  const pageContent = await readFile('content/page-content.json', 'utf8');
+  const blogFiles = await filesUnder('content/blog');
+  const blogContent = await Promise.all(blogFiles.filter(path => path.endsWith('.json')).map(path => readFile(path, 'utf8')));
+  const referencedMedia = new Set<string>();
+  for (const source of [pageContent, ...blogContent]) {
+    for (const match of source.matchAll(/\/media\/([^\s)\"']+\.(?:jpe?g|png|webp))/gi)) referencedMedia.add(match[1]);
+  }
+  referencedMedia.add('social-preview.png');
 
-  for (const [directory, pattern] of allowed) {
-    for (const path of await filesUnder(directory)) {
-      expect(relative(directory, path), `unexpected file in ${directory}`).toMatch(pattern);
-    }
+  for (const path of await filesUnder('public/media')) {
+    expect(referencedMedia, `unexpected file in public/media`).toContain(relative('public/media', path));
+  }
+
+  const brandPattern = /^kmsc-(acronym(?:-full)?|head-and-ideas)\.png$/i;
+  for (const path of await filesUnder('src/assets/brand')) {
+    expect(relative('src/assets/brand', path), `unexpected file in src/assets/brand`).toMatch(brandPattern);
   }
 });
