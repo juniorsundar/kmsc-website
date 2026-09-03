@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { expectRobotsMeta } from './support/indexing';
 
 const LEGAL_NAME = 'Kautilya Management System Consultancy Pvt. Ltd.';
 const ROUTES = ['/', '/about/', '/services/', '/blog/', '/contact/', '/privacy/'];
@@ -75,10 +76,10 @@ test('About presents Dr. Sundar Subramani as Director, Principal Consultant', as
 
 // ── Metadata and noindex ───────────────────────────────────────────
 
-test('all routes emit noindex and have og:image', async ({ page }) => {
+test('all routes carry the expected robots directive and have og:image', async ({ page }) => {
   for (const route of ROUTES) {
     await page.goto(route);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+    await expectRobotsMeta(page);
     const ogImage = page.locator('meta[property="og:image"]');
     await expect(ogImage).toHaveAttribute('content', /social-preview/);
   }

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { expectRobotsMeta } from './support/indexing';
 
 const recordPath = 'docs/launch-readiness.md';
 
@@ -21,7 +22,7 @@ test('preview Blog route contains either approved posts or its empty state', asy
   } else {
     await expect(cards.first()).toBeVisible();
   }
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+  await expectRobotsMeta(page);
 });
 
 test('launch-readiness record separates human-owned production evidence', async () => {

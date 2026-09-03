@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
-import astroConfig from '../astro.config.mjs';
+import { expectRobotsMeta, siteOrigin } from './support/indexing';
 
 // Taken from the build configuration rather than hardcoded: the origin depends
 // on whether this is a production release, and the assertion is that the page
 // agrees with the origin it was built for.
-const homeUrl = new URL('/', astroConfig.site).href;
+const homeUrl = new URL('/', siteOrigin).href;
 
 test('Home presents validated starter Page Content', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Kautilya Management System Consultancy Pvt\. Ltd\. \| /);
   await expect(page.locator('h1')).not.toHaveText('');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', homeUrl);
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+  await expectRobotsMeta(page);
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', homeUrl);
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
   await expect(page.getByRole('link', { name: 'Discuss Your Training Needs' })).toHaveAttribute('href', '/contact/');
