@@ -51,6 +51,7 @@ collections:
               - { name: heading, label: Page heading, widget: string }
               - { name: intro, label: Introduction, widget: text }
               - { name: founderBio, label: Founder biography, widget: text, hint: "Restrained placeholder until approved copy is ready. Do not add fabricated claims, testimonials, or statistics." }
+              - { name: linkedinUrl, label: LinkedIn profile URL, widget: string, required: false, hint: "Full https LinkedIn profile URL, for example https://www.linkedin.com/in/your-profile. Shown as a LinkedIn link on the About page. Leave empty to hide it. Do not paste the URL into the biography text." }
           - name: servicesPage
             label: Services page
             widget: object

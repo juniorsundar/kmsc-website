@@ -29,7 +29,7 @@ const content = z.object({
     servicesHeading: z.string().min(1),
     servicesIntro: z.string().min(1)
   }),
-  about: z.object({ heading: z.string().min(1), intro: z.string().min(1), founderBio: z.string().min(1) }),
+  about: z.object({ heading: z.string().min(1), intro: z.string().min(1), founderBio: z.string().min(1), linkedinUrl: z.string().trim().regex(/^https:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/, 'must be a full https LinkedIn profile URL').optional() }),
   servicesPage: z.object({ heading: z.string().trim().min(1), intro: z.string().trim().min(1) }),
   contact: z.object({
     eyebrow: z.string().trim().min(1),

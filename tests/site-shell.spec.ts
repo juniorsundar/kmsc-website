@@ -67,6 +67,10 @@ test('About presents Dr. Sundar Subramani as Director, Principal Consultant', as
   await page.goto('/about/');
   await expect(page.getByRole('heading', { name: 'Dr. Sundar Subramani' })).toBeVisible();
   await expect(page.getByText('Director, Principal Consultant')).toBeVisible();
+  const linkedin = page.getByRole('link', { name: 'Dr. Sundar Subramani on LinkedIn' });
+  await expect(linkedin).toBeVisible();
+  await expect(linkedin).toHaveAttribute('href', /https:\/\/(www\.)?linkedin\.com\/in\//);
+  await expect(page.getByText('linkedin.com')).toHaveCount(0);
 });
 
 // ── Metadata and noindex ───────────────────────────────────────────
