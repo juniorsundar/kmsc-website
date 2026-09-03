@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Home presents validated starter Page Content', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle(/Professional training/);
+  await expect(page).toHaveTitle(/Kautilya Management System Consultancy Pvt\. Ltd\. \| /);
   await expect(page.locator('h1')).not.toHaveText('');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://preview.kautilyamsc.com/');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');

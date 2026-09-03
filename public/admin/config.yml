@@ -39,6 +39,7 @@ collections:
             label: Home
             widget: object
             fields:
+              - { name: titleSuffix, label: Page title suffix, widget: string, hint: "Shown after the company name in the browser tab and in link previews such as WhatsApp. Keep it short and meaningful." }
               - { name: eyebrow, label: Eyebrow text, widget: string }
               - { name: headline, label: Headline, widget: string }
               - { name: intro, label: Introduction, widget: text }

@@ -5,7 +5,7 @@ import { trainingServices } from '../data/training-services';
 
 const { home, site } = content;
 ---
-<BaseLayout title={`${site.legalName} | Professional training`}>
+<BaseLayout title={`${site.legalName} | ${home.titleSuffix}`}>
   <section class="hero"><p class="eyebrow">{home.eyebrow}</p><h1>{home.headline}</h1><p>{home.intro}</p><a class="button" href="/contact/">{site.cta}</a></section>
   <section class="section" aria-labelledby="services-heading"><h2 id="services-heading">{home.servicesHeading}</h2><p>{home.servicesIntro}</p><div class="cards">{trainingServices.map(service => <article class="card"><h3>{service.name}</h3><p>{service.summary}</p></article>)}</div></section>
 </BaseLayout>

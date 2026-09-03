@@ -23,6 +23,7 @@ const content = z.object({
     formspreeEndpoint: z.string().url().regex(/^https:\/\/formspree\.io\/f\/.+$/, 'must be a Formspree form endpoint').optional()
   }),
   home: z.object({
+    titleSuffix: z.string().trim().min(1),
     eyebrow: z.string().min(1),
     headline: z.string().min(1),
     intro: z.string().min(1),
