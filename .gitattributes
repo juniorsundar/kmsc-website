@@ -1,0 +1,5 @@
+# The vendored editor bundle is third-party code, not ours to review line by
+# line: never diff it as text, and keep it out of language statistics. Its
+# integrity is verified against the npm registry by scripts/vendor-decap.sh.
+public/admin/decap-cms.js binary linguist-vendored
+public/admin/decap-cms.js.LICENSE.txt linguist-vendored

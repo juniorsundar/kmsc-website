@@ -43,7 +43,16 @@ test('tracked files contain no OAuth credentials or private keys', async () => {
 });
 
 test('repository history contains no OAuth credentials or private keys', async () => {
-  const history = execFileSync('git', ['log', '--all', '--format=', '--patch', '--', '.'], { encoding: 'utf8' });
+  // Vendored third-party code is excluded: it is not where our credentials
+  // could leak, and diffing a multi-megabyte bundle as text would otherwise
+  // overrun the subprocess output buffer. maxBuffer stays generous so a
+  // growing history fails on a real finding rather than on ENOBUFS.
+  const history = execFileSync(
+    'git',
+    ['log', '--all', '--format=', '--patch', '--', '.', ':(exclude)public/admin/decap-cms.js'],
+    { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 }
+  );
+  expect(history.length).toBeGreaterThan(0);
   for (const pattern of credentialPatterns) {
     expect(history, `git history matches ${pattern}`).not.toMatch(pattern);
   }
