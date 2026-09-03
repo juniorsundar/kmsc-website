@@ -44,7 +44,9 @@ for route in "${check_routes[@]}"; do
   echo "HTTPS $canonical$route -> 200"
 done
 
-headers=$(curl --silent --show-error --max-time 15 -D - -o /dev/null "https://$www/")
+# HTTP headers arrive CRLF-terminated. Strip the CR so the whole-line match
+# below compares the header value rather than value-plus-carriage-return.
+headers=$(curl --silent --show-error --max-time 15 -D - -o /dev/null "https://$www/" | tr -d '\r')
 printf '%s\n' "$headers" | grep -Eiq '^HTTP/[0-9.]+ 301 ' || { echo "www did not return 301" >&2; exit 1; }
 printf '%s\n' "$headers" | grep -Fix "location: https://$canonical/" >/dev/null || { echo "www redirect location is not canonical" >&2; exit 1; }
 echo "HTTPS $www/ -> 301 https://$canonical/"
