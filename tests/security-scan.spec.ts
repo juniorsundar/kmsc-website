@@ -73,7 +73,7 @@ test('asset directories contain only approved project assets', async () => {
     expect(referencedMedia, `unexpected file in public/media`).toContain(relative('public/media', path));
   }
 
-  const brandPattern = /^kmsc-(acronym(?:-full)?|head-and-ideas)\.png$/i;
+  const brandPattern = /^kmsc-(acronym(?:-full)?|head-and-ideas|card-back)\.png$/i;
   for (const path of await filesUnder('src/assets/brand')) {
     expect(relative('src/assets/brand', path), `unexpected file in src/assets/brand`).toMatch(brandPattern);
   }
