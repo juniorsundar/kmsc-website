@@ -1,13 +1,14 @@
 import type { APIRoute } from 'astro';
-import { indexingEnabled } from '../config/release';
+import { siteIndexable } from '../config/release';
 import { blogPosts } from '../data/blog-posts';
 
 const publicPaths = ['/', '/about/', '/services/', '/blog/', '/contact/', '/privacy/'];
 
 export const GET: APIRoute = ({ site }) => {
   const origin = site || new URL('https://preview.kautilyamsc.com');
-  const paths = indexingEnabled
-    ? [...publicPaths, ...blogPosts.map(post => `/blog/${post.slug}/`)]
+  // Never advertise a page that BaseLayout serves as noindex.
+  const paths = siteIndexable
+    ? [...publicPaths, ...blogPosts.filter(post => !post.noindex).map(post => `/blog/${post.slug}/`)]
     : [];
   const urls = paths
     .map(path => `  <url><loc>${new URL(path, origin).href}</loc></url>`)

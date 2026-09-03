@@ -83,6 +83,21 @@ test.describe('OAuth proxy', () => {
     }
   });
 
+  test('pins the requested scope so a crafted link cannot widen the token', async () => {
+    const env = {
+      GITHUB_CLIENT_ID: 'local-client-id',
+      GITHUB_CLIENT_SECRET: ['local', 'client', 'secret'].join('-')
+    };
+    for (const attempt of ['repo', 'repo,delete_repo', 'admin:org', 'public_repo,admin:org', '']) {
+      const response = await oauthFetch(request(`/auth?scope=${encodeURIComponent(attempt)}`), env);
+      const body = await response.text();
+      expect(body, `scope=${attempt} must not reach GitHub`).toContain('scope=public_repo&');
+      for (const forbidden of ['delete_repo', 'admin%3Aorg', 'admin:org']) {
+        expect(body, `scope=${attempt} leaked ${forbidden}`).not.toContain(forbidden);
+      }
+    }
+  });
+
   test('contains no hardcoded OAuth secret', async () => {
     const source = await readFile(resolve('worker/oauth-proxy.mjs'), 'utf8');
     expect(source).not.toMatch(/GITHUB_CLIENT_SECRET\s*[:=]\s*["'][^"']+["']/);

@@ -1,6 +1,6 @@
 ---
 import content from '../../content/page-content.json';
-import { indexingEnabled } from '../config/release';
+import { siteIndexable } from '../config/release';
 import brandLogo from '../assets/brand/kmsc-card-back.png';
 const { site } = content;
 const {
@@ -8,11 +8,14 @@ const {
   description = site.description,
   type = 'website',
   image = site.socialPreview,
+  noindex = false,
   publishedTime
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const socialImage = image ? new URL(image, Astro.site).href : undefined;
-const effectiveNoindex = !indexingEnabled;
+// Any one of the three controls can withhold a page: the release-wide indexing
+// gate, the editor's global setting, or this page's own noindex.
+const effectiveNoindex = !siteIndexable || noindex;
 const year = new Date().getFullYear();
 ---
 <!doctype html>

@@ -1,6 +1,11 @@
 const GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const stateCookie = 'kmsc_oauth_state';
+// The editor only ever needs to commit content to one public repository. The
+// requested scope is pinned rather than forwarded, so a crafted /auth link can
+// never widen what the minted token is able to do.
+const allowedScopes = new Set(['public_repo']);
+const defaultScope = 'public_repo';
 
 function html(value) {
   return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -51,7 +56,8 @@ async function authenticate(request, env) {
   const authorization = new URL(GITHUB_AUTHORIZE_URL);
   authorization.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
   authorization.searchParams.set('redirect_uri', redirect);
-  authorization.searchParams.set('scope', requestUrl.searchParams.get('scope') || 'public_repo');
+  const requestedScope = requestUrl.searchParams.get('scope');
+  authorization.searchParams.set('scope', allowedScopes.has(requestedScope) ? requestedScope : defaultScope);
   authorization.searchParams.set('state', state);
   const messageOrigin = env.CMS_ORIGIN || 'https://kautilyamsc.com';
   return new Response(authorizationPage(authorization.toString(), messageOrigin).body, {

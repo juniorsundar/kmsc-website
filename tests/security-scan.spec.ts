@@ -59,6 +59,47 @@ test('generated artifacts contain no OAuth credentials or private keys', async (
   await assertNoCredentials(await filesUnder(artifactRoot));
 });
 
+test('the editor bundle is served same-origin and never from a CDN', async () => {
+  const adminPage = await readFile('src/pages/admin/index.html', 'utf8');
+  // The editor receives the GitHub access token, so a third-party host able to
+  // answer for that script could exfiltrate a token with push access to main.
+  const scriptSources = [...adminPage.matchAll(/<script[^>]*\ssrc="([^"]+)"/gi)].map(match => match[1]);
+  expect(scriptSources.length).toBeGreaterThan(0);
+  for (const source of scriptSources) {
+    expect(source, 'the editor bundle must be a same-origin path').toMatch(/^\//);
+  }
+  expect(adminPage).not.toMatch(/unpkg\.com|cdn\.jsdelivr|cdnjs|jsdelivr\.net/i);
+
+  const bundle = await stat('public/admin/decap-cms.js');
+  expect(bundle.isFile()).toBe(true);
+  expect(bundle.size).toBeGreaterThan(1_000_000);
+});
+
+test('production Caddy config sets the transport and content security headers', async () => {
+  const config = await readFile('deploy/caddy/Caddyfile', 'utf8');
+  expect(config).toMatch(/Strict-Transport-Security "max-age=\d+/);
+  expect(config).toContain('X-Content-Type-Options "nosniff"');
+  expect(config).toContain('Referrer-Policy "strict-origin-when-cross-origin"');
+
+  // Each route group gets exactly one Content-Security-Policy, so the editor's
+  // necessarily looser policy never applies to the public content pages.
+  const policies = [...config.matchAll(/header @(\w+) Content-Security-Policy "([^"]+)"/g)];
+  const byGroup = new Map(policies.map(([, group, policy]) => [group, policy]));
+  expect([...byGroup.keys()].sort()).toEqual(['admin', 'contact', 'content']);
+  for (const [group, policy] of byGroup) {
+    expect(policy, `${group} must default to deny`).toContain("default-src 'none'");
+    expect(policy, `${group} must not be framable`).toContain("frame-ancestors 'none'");
+    expect(policy, `${group} must pin base-uri`).toContain("base-uri 'none'");
+  }
+
+  // Content pages run no script at all, and only the editor may reach GitHub.
+  expect(byGroup.get('content')).not.toContain('script-src');
+  expect(byGroup.get('content')).not.toMatch(/unsafe-eval|api\.github\.com/);
+  expect(byGroup.get('contact')).not.toMatch(/unsafe-eval|api\.github\.com/);
+  expect(byGroup.get('admin')).toContain("script-src 'self'");
+  expect(byGroup.get('admin')).toMatch(/connect-src 'self' https:\/\/api\.github\.com/);
+});
+
 test('asset directories contain only approved project assets', async () => {
   const pageContent = await readFile('content/page-content.json', 'utf8');
   const blogFiles = await filesUnder('content/blog');

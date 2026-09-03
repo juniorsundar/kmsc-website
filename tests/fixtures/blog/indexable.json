@@ -1,0 +1,10 @@
+{
+  "title": "An Indexable Blog Post for Metadata Coverage",
+  "slug": "indexable-blog-post-metadata-coverage",
+  "summary": "A representative Blog Post that is cleared for search engines, used only to verify per-post indexing.",
+  "date": "2025-02-20",
+  "body": "This representative Blog Post is cleared for indexing.\n\nIt exists so the per-post noindex control is proven in both directions.",
+  "tags": ["training"],
+  "author": "Dr. Sundar Subramani",
+  "noindex": false
+}

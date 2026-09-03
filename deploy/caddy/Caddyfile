@@ -2,14 +2,54 @@
 # Caddy obtains certificates for both hostnames automatically. The website
 # reads the atomic live symlink; it never writes to the release tree.
 kautilyamsc.com {
-    root * /srv/kmsc-website/live
-    encode gzip
-    # Formspree's domain restriction checks Referer; retain the origin on
-    # cross-origin form POSTs without exposing the full page URL.
-    header Referrer-Policy "strict-origin-when-cross-origin"
-    file_server
+	root * /srv/kmsc-website/live
+	encode gzip
+
+	# Carried on every response.
+	header {
+		# Deliberately without includeSubDomains or preload: other hosts under
+		# this domain are not known to be HTTPS-only, and a wrong HSTS scope
+		# cannot be withdrawn until the max-age expires in every visitor's
+		# browser. Widen only after confirming every subdomain serves HTTPS.
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		# Formspree's domain restriction checks Referer; retain the origin on
+		# cross-origin form POSTs without exposing the full page URL.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# Content-Security-Policy is set per route group: the editor and the contact
+	# form each need strictly more than the static content pages do, and the
+	# weakest policy must not apply site-wide. The three matchers below do not
+	# overlap, so exactly one policy applies to any request.
+
+	# Static content pages load no script at all. Astro inlines the stylesheet,
+	# so style-src needs 'unsafe-inline'; the webfont @import needs the Google
+	# Fonts host in style-src and the font files need fonts.gstatic.com.
+	@content not path /admin /admin/ /admin/* /contact /contact/ /contact/*
+	header @content Content-Security-Policy "default-src 'none'; img-src 'self'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
+
+	# The contact page adds the inline submit handler, Google reCAPTCHA (script,
+	# its gstatic assets, and its iframe), and the Formspree endpoint the form
+	# posts to. form-action is pinned so an injected form cannot post elsewhere.
+	@contact path /contact /contact/ /contact/*
+	header @contact Content-Security-Policy "default-src 'none'; img-src 'self' https://www.gstatic.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline' https://www.google.com https://www.gstatic.com; frame-src https://www.google.com; connect-src https://formspree.io https://www.google.com; form-action https://formspree.io; frame-ancestors 'none'; base-uri 'none'"
+
+	# The editor holds a GitHub token, so the two directives that matter most
+	# here are script-src 'self' (the bundle is vendored, so no third-party
+	# script can run) and the connect-src allowlist (an injected script cannot
+	# exfiltrate the token to an arbitrary host). 'unsafe-inline'/'unsafe-eval'
+	# are concessions to the Decap bundle; try removing them and confirm the
+	# editor still loads, authenticates, and publishes before relying on them.
+	@admin path /admin /admin/ /admin/*
+	header @admin Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avatars.githubusercontent.com https://raw.githubusercontent.com; font-src 'self' data:; connect-src 'self' https://api.github.com https://kmsc-editor-auth.juniorsundar.workers.dev; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
+
+	file_server
 }
 
 www.kautilyamsc.com {
-    redir https://kautilyamsc.com{uri} permanent
+	header Strict-Transport-Security "max-age=31536000"
+	redir https://kautilyamsc.com{uri} permanent
 }
