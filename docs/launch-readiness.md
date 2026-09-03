@@ -55,6 +55,20 @@ DNSSEC is deliberately **not enabled by this repository or its deployment workfl
 
 The completed operator record confirms the DNSSEC chain validates without resolution errors. Preview `noindex` remains active even after DNSSEC validation. Production indexing requires a separate explicit KMSC approval of final Page Content and a deliberate `PUBLIC_INDEXING_ENABLED=true` release.
 
+## Who controls indexing
+
+Indexing needs two independent permissions, and either one alone withholds the website.
+
+| Control | Owner | Meaning |
+| --- | --- | --- |
+| `PUBLIC_INDEXING_ENABLED` repository variable | Operator, once at launch | Authorises production releases to be indexable at all. Preview and pull-request builds are never indexable. |
+| **Exclude the whole website from search engines** in the Editor | KMSC, at any time | The live on/off switch. ON withholds every page; OFF publishes the website to search engines. |
+| **Exclude from search engines** on a Blog Post | KMSC, per post | Withholds that one post even when the website is indexable. Defaults to ON for new posts. |
+
+Once the operator has set the repository variable, KMSC owns the decision from the Editor and no repository or CI change is needed to publish or withdraw the website. A change takes effect on the next release, which the Editor triggers automatically when it saves.
+
+Withdrawing is not retroactive: search engines may already have cached pages indexed while the switch was OFF, and removing those is a separate request to each search engine.
+
 ## Sensitive-value boundary
 
 Do not put any of the following in this record, GitHub, the repository, `dist/`, or test logs: deployment private keys, the Ubuntu administrator key, OAuth client secrets, Formspree credentials or CAPTCHA secrets, registrar/Cloudflare credentials, recovery codes, reserved IP details when treated as sensitive operational data, or real Training Enquiries. Store the human-owned checklist and redacted evidence in the approved operator record.

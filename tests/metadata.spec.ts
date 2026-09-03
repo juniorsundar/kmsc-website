@@ -23,12 +23,13 @@ async function build(mode: 'preview' | 'production', { siteNoindex = false } = {
   await cp('tests/fixtures/blog/representative.json', join(root, 'content/blog/representative.json'));
   await cp('tests/fixtures/blog/indexable.json', join(root, 'content/blog/indexable.json'));
 
-  if (siteNoindex) {
-    const pagePath = join(root, 'content/page-content.json');
-    const page = JSON.parse(await readFile(pagePath, 'utf8'));
-    page.site.noindex = true;
-    await writeFile(pagePath, `${JSON.stringify(page, null, 2)}\n`);
-  }
+  // Always written, never inherited: these tests exercise the editor's global
+  // search switch, so they must not depend on whatever the live content sets it
+  // to. Callers state the switch position they are testing.
+  const pagePath = join(root, 'content/page-content.json');
+  const page = JSON.parse(await readFile(pagePath, 'utf8'));
+  page.site.noindex = siteNoindex;
+  await writeFile(pagePath, `${JSON.stringify(page, null, 2)}\n`);
 
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
