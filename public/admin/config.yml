@@ -22,7 +22,6 @@ collections:
             widget: object
             fields:
               - { name: legalName, label: Legal name, widget: string, hint: "Must be exactly: Kautilya Management System Consultancy Pvt. Ltd." }
-              - { name: email, label: Public email, widget: string }
               - { name: cta, label: Primary call to action, widget: string, hint: "Must be exactly: Discuss Your Training Needs" }
               - name: author
                 label: Default author

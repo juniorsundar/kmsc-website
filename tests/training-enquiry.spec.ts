@@ -36,14 +36,14 @@ test('a successful Training Enquiry sends the public field contract', async ({ p
   }
 });
 
-test('a delivery failure preserves input and provides the email fallback', async ({ page }) => {
+test('a delivery failure preserves input and provides a retry message', async ({ page }) => {
   await page.route(endpoint, route => route.fulfill({ status: 503, body: 'Unavailable' }));
   await page.goto('/contact/');
   await fillEnquiry(page);
   await page.getByRole('button', { name: 'Send Training Enquiry' }).click();
 
-  await expect(page.getByRole('status')).toContainText('could not be sent');
-  await expect(page.getByRole('status').getByRole('link', { name: 'drsundar.subramani@outlook.com' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('could not be sent. Please try again.');
+  await expect(page.getByRole('status').getByRole('link')).toHaveCount(0);
   await expect(page.getByLabel('Name')).toHaveValue('Asha Rao');
   await expect(page.getByLabel('Message')).toHaveValue('We would like to discuss a Training Service.');
 });

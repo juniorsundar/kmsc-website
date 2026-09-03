@@ -38,9 +38,9 @@ The production build will be uploaded as static artifacts to the existing Oracle
 22. As a prospective Client Company representative, I want to give explicit privacy consent before submitting a Training Enquiry, so that I understand how my information will be processed.
 23. As a prospective Client Company representative, I want clear validation messages for missing or invalid form data, so that I can correct the submission.
 24. As a prospective Client Company representative, I want confirmation after a successful Training Enquiry, so that I know it was delivered.
-25. As a prospective Client Company representative, I want a helpful failure message and visible email fallback if form delivery fails, so that I can still contact KMSC.
-26. As a prospective Client Company representative, I want to contact KMSC at `drsundar.subramani@outlook.com`, so that I have a direct alternative to the form.
-27. As a privacy-conscious visitor, I want a concise Privacy page naming the contact-form processor, so that I understand where Training Enquiry data goes.
+25. As a prospective Client Company representative, I want a helpful failure message and retry guidance if form delivery fails, so that I can still contact KMSC.
+26. As a prospective Client Company representative, I want a Contact page and a footer Contact link, so that I have a direct route to KMSC.
+27. As a privacy-conscious visitor, I want a concise Privacy page explaining the purpose of Training Enquiry collection and the contact route for privacy questions, so that I understand where my enquiry goes.
 28. As a privacy-conscious visitor, I want the initial site to avoid analytics and tracking cookies, so that I am not tracked unnecessarily.
 29. As a KMSC representative, I want phone numbers omitted from the initial website, so that unpublished contact channels remain private.
 30. As a Blog reader, I want a clear Blog index, so that I can browse KMSC's published thinking when articles become available.
@@ -111,11 +111,11 @@ The production build will be uploaded as static artifacts to the existing Oracle
 20. The Editor will be able to load and modify existing Blog Posts from GitHub after they have been deployed. Editing a deployed page or Blog Post will create a new commit and release rather than modifying production files in place.
 21. Decap authentication will use a GitHub OAuth application and a small OAuth proxy deployed as a Cloudflare Worker. The OAuth client secret will be stored as a Worker secret and must not be sent to the browser or committed to GitHub.
 22. The Editor must have a GitHub account with access appropriate to the content repository. Routine editorial work will happen through `/admin`; knowledge of Git commands is not required.
-23. The Contact form will submit Training Enquiries to Formspree and deliver notifications to `drsundar.subramani@outlook.com`.
+23. The Contact form will submit Training Enquiries to the configured form endpoint. Delivery routing is operator configuration and is not published on the website.
 24. The Training Enquiry contract will contain name, work email, company, training interest, message, explicit privacy consent, and anti-spam fields. Telephone will not be requested initially.
-25. The form will provide accessible client-side feedback, but server-side Formspree responses remain authoritative. Success and failure states must be visible and announced to assistive technology, with the public email address available as a fallback.
-26. Formspree domain restriction, CAPTCHA support, and a honeypot will be enabled when the production account and domain are configured. The public form identifier is not treated as a secret, but account credentials are.
-27. The Privacy page will explain the purpose of Training Enquiry collection, identify Formspree as the processor, state the contact route for privacy questions, and avoid claims about retention or jurisdiction that KMSC has not verified.
+25. The form will provide accessible client-side feedback, but server-side delivery responses remain authoritative. Success and failure states must be visible and announced to assistive technology, with a retry message on failure.
+26. Form-endpoint domain restriction, CAPTCHA support, and a honeypot will be enabled when the production account and domain are configured. The public form identifier is not treated as a secret, but account credentials are.
+27. The Privacy page will explain the purpose of Training Enquiry collection, state the contact route for privacy questions without publishing a public email address, and avoid claims about retention or jurisdiction that KMSC has not verified.
 28. No analytics, advertising pixels, behavioral tracking, or nonessential cookies will be included in the first release. Consequently, the first release will not add a cookie-consent banner.
 29. The preview release will emit `noindex` directives consistently for HTML and crawler-facing metadata. Indexing will be enabled only through an explicit release configuration change after KMSC approves final Page Content.
 30. Page titles, descriptions, canonical URLs, social-preview metadata, and sitemap behavior will be generated consistently. Preview deployments must not advertise themselves as canonical production content.

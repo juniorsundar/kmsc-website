@@ -46,11 +46,10 @@ const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
       <div class="g-recaptcha" data-sitekey={recaptchaSiteKey} aria-describedby="captcha-help"></div>
       <button class="button" type="submit">Send Training Enquiry</button>
     </form>
-    <p>Or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
   </section>
 </BaseLayout>
 
-<script is:inline define:vars={{ email: site.email }}>
+<script is:inline>
   const form = document.querySelector('form');
   const status = form?.querySelector('.form-status');
   const fields = ['name', 'email', 'company', 'training-interest', 'message', 'privacy-consent'];
@@ -94,11 +93,7 @@ const endpoint = getFormspreeEndpoint(site.formspreeEndpoint);
         status.textContent = 'Your Training Enquiry was sent. KMSC will respond by email.';
         status.className = 'form-status success';
       } catch {
-        status.textContent = 'The Training Enquiry could not be sent. Please try again or email ';
-        const fallback = document.createElement('a');
-        fallback.href = `mailto:${email}`;
-        fallback.textContent = email;
-        status.append(fallback, '.');
+        status.textContent = 'The Training Enquiry could not be sent. Please try again.';
         status.className = 'form-status failure';
       } finally {
         status.hidden = false;

@@ -17,13 +17,13 @@ test('all routes share consistent navigation links', async ({ page }) => {
   }
 });
 
-test('all routes share footer with legal name, copyright, email, and Privacy link', async ({ page }) => {
+test('all routes share footer with legal name, copyright, Contact, and Privacy link', async ({ page }) => {
   for (const route of ROUTES) {
     await page.goto(route);
     const footer = page.locator('footer');
     await expect(footer).toContainText(LEGAL_NAME);
     await expect(footer).toContainText(`© ${new Date().getFullYear()}`);
-    await expect(footer.getByRole('link', { name: 'drsundar.subramani@outlook.com' })).toBeVisible();
+    await expect(footer.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact/');
     await expect(footer.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
   }
 });

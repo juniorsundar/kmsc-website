@@ -13,7 +13,6 @@ const trainingService = z.object({
 const content = z.object({
   site: z.object({
     legalName: z.literal('Kautilya Management System Consultancy Pvt. Ltd.'),
-    email: z.string().email(),
     cta: z.literal('Discuss Your Training Needs'),
     author: z.object({ name: z.literal('Dr. Sundar Subramani'), role: z.string().min(1) }),
     description: z.string().trim().min(1),
