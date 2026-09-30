@@ -4,7 +4,7 @@
   "author": "Dr. Sundar Subramani",
   "slug": "managing-life-and-family-as-a-management-system",
   "date": "2026-09-30",
-  "noindex": true,
+  "noindex": false,
   "coverAlt": "Framework to manage life and family as a management system",
   "cover": "/media/management-system-in-life.png",
   "title": "Managing Life and Family as a Management System",
