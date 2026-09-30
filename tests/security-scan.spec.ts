@@ -106,7 +106,7 @@ test('production Caddy config sets the transport and content security headers', 
   expect(byGroup.get('content')).not.toMatch(/unsafe-eval|api\.github\.com/);
   expect(byGroup.get('contact')).not.toMatch(/unsafe-eval|api\.github\.com/);
   expect(byGroup.get('admin')).toContain("script-src 'self'");
-  expect(byGroup.get('admin')).toMatch(/connect-src 'self' https:\/\/api\.github\.com/);
+  expect(byGroup.get('admin')).toMatch(/connect-src 'self' blob: https:\/\/api\.github\.com/);
 });
 
 test('asset directories contain only approved project assets', async () => {

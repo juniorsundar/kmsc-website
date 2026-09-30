@@ -43,8 +43,11 @@ kautilyamsc.com {
 	# exfiltrate the token to an arbitrary host). 'unsafe-inline'/'unsafe-eval'
 	# are concessions to the Decap bundle; try removing them and confirm the
 	# editor still loads, authenticates, and publishes before relying on them.
+	# connect-src needs blob: because Decap reads newly uploaded media back
+	# from an in-page blob: URL before committing it; without it, publishing
+	# any entry with a new image fails with "TypeError: Failed to fetch".
 	@admin path /admin /admin/ /admin/*
-	header @admin Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avatars.githubusercontent.com https://raw.githubusercontent.com; font-src 'self' data:; connect-src 'self' https://api.github.com https://kmsc-editor-auth.juniorsundar.workers.dev; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
+	header @admin Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avatars.githubusercontent.com https://raw.githubusercontent.com; font-src 'self' data:; connect-src 'self' blob: https://api.github.com https://kmsc-editor-auth.juniorsundar.workers.dev; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
 
 	file_server
 }
