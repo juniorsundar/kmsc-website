@@ -12,7 +12,8 @@ const read = (): Record<string, string> => { try { return JSON.parse(sessionStor
 const decapEscape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
-for (const [name, kind] of [['unescaped_string', 'string'], ['unescaped_markdown', 'markdown']] as const) {
+// Text the Editor can read and edit: undo Decap's escaping of the importer's values.
+for (const [name, kind] of [['unescaped_string', 'string'], ['unescaped_text', 'text'], ['unescaped_markdown', 'markdown']] as const) {
   const inner = w.CMS.getWidget(kind);
   const Control = w.createClass({
     componentDidMount() {
@@ -28,6 +29,35 @@ for (const [name, kind] of [['unescaped_string', 'string'], ['unescaped_markdown
   w.CMS.registerWidget(name, Control, inner.preview);
 }
 
+// Decap stores a pre-filled list as one comma-separated string (ticket 01); turn it into the list the schema expects.
+{
+  const inner = w.CMS.getWidget('list');
+  w.CMS.registerWidget('prefilled_list', w.createClass({
+    componentDidMount() {
+      const raw = read().tags;
+      if (this.props.entry.get('newRecord') && typeof this.props.value === 'string' && raw !== undefined && this.props.value === raw) {
+        this.props.onChange(raw.split(',').filter(Boolean));
+      }
+    },
+    render() { return w.h(inner.control, this.props); }
+  }), inner.preview);
+}
+
+// Slugs of the Blog Posts on the deployed site, read from its public Blog index.
+async function existingSlugs() {
+  try {
+    const html = await (await fetch('/blog/', { cache: 'no-store' })).text();
+    return [...html.matchAll(/href="\/blog\/([a-z0-9-]+)\/"/g)].map(match => match[1]);
+  } catch {
+    return []; // the build's duplicate-slug validation still catches a clash
+  }
+}
+
+const localDate = () => {
+  const now = new Date();
+  return [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((part, i) => String(part).padStart(i ? 2 : 4, '0')).join('-');
+};
+
 w.CMS.registerWidget('manuscript_import', w.createClass({
   getInitialState() { return { problem: '' }; },
   async onPick(event: Event) {
@@ -35,10 +65,11 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    const result = await importManuscript(await file.arrayBuffer());
+    const result = await importManuscript(await file.arrayBuffer(), { existingSlugs: await existingSlugs(), today: localDate() });
     if (!result.ok) return this.setState({ problem: result.reason });
     this.setState({ problem: '' });
-    const sent = { title: result.fields.title, body: result.fields.body };
+    const { tags, noindex, ...text } = result.fields;
+    const sent = { ...text, tags: tags.join(','), noindex: String(noindex) };
     sessionStorage.setItem(key, JSON.stringify(sent));
     const target = '#/collections/blog/new?' + new URLSearchParams(sent);
     // Decap only builds a fresh draft when the form is mounted anew, so leave the form, wait until it is gone, then re-enter.

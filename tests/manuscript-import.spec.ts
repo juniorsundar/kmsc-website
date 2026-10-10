@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { importManuscript } from '../src/admin/manuscript-importer';
+import JSZip from 'jszip';
+import { importManuscript as runImport, type ImportOptions } from '../src/admin/manuscript-importer';
+
+const importManuscript = (bytes: ArrayBuffer, options: Partial<ImportOptions> = {}) =>
+  runImport(bytes, { existingSlugs: [], today: '2026-10-07', ...options });
 
 // Fixtures were generated with pandoc from Markdown, which writes real Word styles
-// (Title, Heading 1, Heading 2). Replace with Manuscript Template copies in ticket 03.
+// (Title, Heading 1, Heading 2). template-filled.docx comes from the Manuscript Template generator.
 const manuscript = async (name: string) => {
   const file = await readFile(`tests/fixtures/manuscripts/${name}.docx`);
   return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
@@ -79,4 +83,105 @@ test('a filled-in copy of the template imports with its structure and none of it
     '1.  Practise it this week\n2.  Practise it this week'
   ].join('\n\n'));
   expect(result.fields.body).not.toMatch(/Aim for one or two sentences|Do not put pictures/);
+});
+
+// A copy of the filled-in template with some of its text, or its document properties, replaced.
+async function variant(edits: { text?: [string, string][]; core?: [string, string][] }) {
+  const zip = await JSZip.loadAsync(await readFile('tests/fixtures/manuscripts/template-filled.docx'));
+  for (const [part, pairs] of [['word/document.xml', edits.text], ['docProps/core.xml', edits.core]] as const) {
+    let xml = await zip.file(part)!.async('string');
+    for (const [from, to] of pairs ?? []) {
+      if (!xml.includes(from)) throw new Error(`fixture has no "${from}"`);
+      xml = xml.replace(from, to);
+    }
+    zip.file(part, xml);
+  }
+  return zip.generateAsync({ type: 'arraybuffer' });
+}
+const opening = 'Training tells people what to do. Practice is how they learn to do it.';
+const fields = async (bytes: ArrayBuffer, options?: Partial<ImportOptions>) => {
+  const result = await importManuscript(bytes, options);
+  if (!result.ok) throw new Error(result.reason);
+  return result.fields;
+};
+
+test('a short opening paragraph is the whole summary', async () => {
+  expect((await fields(await manuscript('template-filled'))).summary).toBe(opening);
+});
+
+test('a long opening paragraph is cut after the last sentence that ends within 200 characters', async () => {
+  const first = 'The first sentence of this opening paragraph is a moderately long one, about the size of a typical summary.';
+  const second = 'The second sentence adds a little more detail and fits.';
+  const third = 'A third sentence pushes the whole paragraph well beyond what a Blog index card should show.';
+  const summary = (await fields(await variant({ text: [[opening, `${first} ${second} ${third}`]] }))).summary;
+  expect(summary).toBe(`${first} ${second}`);
+  expect(summary.length).toBeLessThanOrEqual(200);
+});
+
+test('a single sentence longer than 200 characters is cut at a word with an ellipsis', async () => {
+  const sentence = Array.from({ length: 60 }, (_, i) => `word${i}`).join(' ') + '.';
+  const summary = (await fields(await variant({ text: [[opening, sentence]] }))).summary;
+  expect(summary.length).toBeLessThanOrEqual(200);
+  expect(summary).toMatch(/ word\d+…$/);
+  expect(sentence.startsWith(summary.slice(0, -1))).toBe(true);
+});
+
+test('the slug is short, lowercase words from the title without filler words', async () => {
+  const slug = async (title: string) => (await fields(await variant({ text: [['Why practice beats training', title]] }))).slug;
+  expect(await slug('Why practice beats training')).toBe('why-practice-beats-training');
+  expect(await slug('The Art of Leading a Team in a Crisis')).toBe('art-leading-team-crisis');
+  expect(await slug('Café Résumé Ideas')).toBe('cafe-resume-ideas');
+  expect(await slug('ISO 9001:2015 to ISO 9001:2026: What changes? Who prepares? When? Why?')).toBe('iso-9001-2015-iso-9001-2026-what-changes');
+  const long = (await slug('Extraordinarily comprehensive organisational transformation methodologies demonstrate consistently remarkable results')).split('-');
+  expect(long.length).toBeLessThanOrEqual(8);
+});
+
+test('the slug stays within about 60 characters', async () => {
+  const slug = (await fields(await variant({ text: [['Why practice beats training', 'Internationalisation Standardisation Professionalisation Institutionalisation Operationalisation Conceptualisation']] }))).slug;
+  expect(slug.length).toBeLessThanOrEqual(60);
+  expect(slug).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+});
+
+test('a slug that is already taken gets the lowest free number', async () => {
+  const taken = ['why-practice-beats-training', 'why-practice-beats-training-2', 'why-practice-beats-training-4'];
+  expect((await fields(await manuscript('template-filled'), { existingSlugs: taken })).slug).toBe('why-practice-beats-training-3');
+});
+
+test('the date is the date supplied for today', async () => {
+  expect((await fields(await manuscript('template-filled'), { today: '2026-11-30' })).date).toBe('2026-11-30');
+});
+
+test('tags come from the keywords property, lowercase and hyphenated, without repeats', async () => {
+  const bytes = await variant({ core: [['<cp:keywords>practice, leadership</cp:keywords>', '<cp:keywords> Leadership; Human Behaviour, leadership ,, </cp:keywords>']] });
+  expect((await fields(bytes)).tags).toEqual(['leadership', 'human-behaviour']);
+  expect((await fields(await manuscript('styled'))).tags).toEqual([]);
+});
+
+test('the byline is the default and the post is visible to search engines', async () => {
+  expect(await fields(await manuscript('template-filled'))).toMatchObject({ author: 'Dr. Sundar Subramani', noindex: false });
+});
+
+test('the title falls back from the Title style to the document title property to the first paragraph', async () => {
+  const withProperty = (bytes: ArrayBuffer) => bytes;
+  void withProperty;
+  const styleAndProperty = await variant({ core: [['<dc:title></dc:title>', '<dc:title>Property title</dc:title>']] });
+  expect((await fields(styleAndProperty)).title).toBe('Why practice beats training');
+
+  const zip = await JSZip.loadAsync(await manuscript('untitled'));
+  zip.file('docProps/core.xml', (await zip.file('docProps/core.xml')!.async('string')).replace('<dc:title></dc:title>', '<dc:title>Property title</dc:title>'));
+  const propertyOnly = await fields(await zip.generateAsync({ type: 'arraybuffer' }));
+  expect(propertyOnly.title).toBe('Property title');
+  // The first paragraph is then the opening, so it is kept in the body and used as the summary.
+  expect(propertyOnly.summary).toBe('This first paragraph is the only title signal.');
+  expect(propertyOnly.body).toContain('This first paragraph is the only title signal.');
+
+  const paragraphOnly = await fields(await manuscript('untitled'));
+  expect(paragraphOnly.title).toBe('This first paragraph is the only title signal.');
+  expect(paragraphOnly.summary).toBe('Then a paragraph of body text.');
+});
+
+test('a Manuscript whose Tags property is still the template placeholder is rejected', async () => {
+  const bytes = await variant({ core: [['<cp:keywords>practice, leadership</cp:keywords>', '<cp:keywords>replace-this-with-your-topics</cp:keywords>']] });
+  const result = await importManuscript(bytes);
+  expect(result).toMatchObject({ ok: false, reason: expect.stringContaining('replace-this-with-your-topics') });
 });
