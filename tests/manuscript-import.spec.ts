@@ -55,11 +55,12 @@ test('the unedited Manuscript Template is rejected and the reason says what to r
   expect(!result.ok && result.reason).toContain('Replace this line with your Blog Post title');
 });
 
-test('a Manuscript with a new title but the template opening paragraph is still rejected', async () => {
-  const edited = await readFile('public/admin/manuscript-template.docx');
+test('a template placeholder is still caught when part of it is bold', async () => {
   const { default: JSZip } = await import('jszip');
-  const zip = await JSZip.loadAsync(edited);
-  const xml = (await zip.file('word/document.xml')!.async('string')).replace('Replace this line with your Blog Post title', 'A real title');
+  const zip = await JSZip.loadAsync(await readFile('public/admin/manuscript-template.docx'));
+  const xml = (await zip.file('word/document.xml')!.async('string'))
+    .replace('Replace this line with your Blog Post title', 'A real title')
+    .replace('Replace this paragraph', 'Replace </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">this</w:t></w:r><w:r><w:t xml:space="preserve"> paragraph');
   zip.file('word/document.xml', xml);
   const result = await importManuscript(await zip.generateAsync({ type: 'arraybuffer' }));
   expect(result).toMatchObject({ ok: false, reason: expect.stringContaining('Replace this paragraph with your opening') });

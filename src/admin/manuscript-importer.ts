@@ -37,7 +37,10 @@ export async function importManuscript(bytes: ArrayBuffer): Promise<ImportResult
   if (!title) return { ok: false, reason: 'This Word document has no title. Start it with a Title-style line.' };
 
   // The same phrases are written into the Manuscript Template, so an unedited copy can never become a Blog Post.
-  const unedited = Object.entries(placeholders).filter(([name, phrase]) => name !== 'keywords' && (title + '\n' + body).includes(phrase)).map(([, phrase]) => phrase);
+  // Matched on the plain text, not the Markdown, so bold or italic inside a placeholder cannot hide it.
+  // shortcut: the Tags (keywords) placeholder is not checked yet; ticket 04 reads the document properties and adds it.
+  const text = plainText(html.replace(/<\/(p|h\d|li)>/g, (end) => end + ' ')).replace(/\s+/g, ' ');
+  const unedited = Object.entries(placeholders).filter(([name, phrase]) => name !== 'keywords' && text.includes(phrase)).map(([, phrase]) => phrase);
   if (unedited.length) return { ok: false, reason: `This Word document still contains text from the Manuscript Template. Replace: "${unedited.join('", "')}".` };
   return { ok: true, fields: { title, body }, warnings: [] };
 }

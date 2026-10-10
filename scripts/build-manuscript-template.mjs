@@ -31,11 +31,15 @@ keywords: [${t.keywords}]
 ${note('Write your Blog Post title here, in the Title style. Set your topics under File > Info > Tags (separate them with commas).', t.title)}
 :::
 
+::: {custom-style="Normal"}
 ${note('This opening paragraph becomes the summary on the Blog index and in search results. Aim for one or two sentences.', t.opening)}
+:::
 
 # ${note('Use the Heading 1 style for each section heading.', t.heading1)}
 
+::: {custom-style="Normal"}
 ${note('Write normal text in the Normal style. Bold, italic, links, lists and tables are kept; fonts, colours and highlighting are ignored. Do not put pictures in this document: upload the cover image separately in the editor.', t.body)}
+:::
 
 ## ${note('Use the Heading 2 style for sub-sections under a section heading.', t.heading2)}
 
