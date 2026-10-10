@@ -1,0 +1,5 @@
+# Import Manuscripts in the browser into the Decap form
+
+Status: accepted
+
+To make publishing easier for the Editor, a Word Manuscript is converted in the browser inside `/admin`, and the converted text pre-fills a new Decap Blog Post form. The Editor reviews it, adds the cover image and its description, and publishes. Re-uploading a Manuscript to an existing Blog Post replaces only its body. We chose this over three alternatives. Filling fields at save time with Decap's `preSave` hook was rejected because `publish_mode: simple` would publish the content before the Editor saw it. Making the Manuscript the lasting copy, converted at build time, was rejected because it would save Word files in Git and remove Decap editing. A server-side or AI-assisted importer was rejected because it would add a new trust boundary, cost and an API key to a static, Git-backed site (ADR-0001). The other fields are filled by fixed rules, not AI. A Manuscript is structured only by Word styles from the Manuscript Template; the importer does not guess headings from bold or numbered lines.

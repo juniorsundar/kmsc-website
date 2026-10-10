@@ -32,6 +32,14 @@ _Avoid_: Blog Post, layout, source code
 An article published in the website's Blog and subsequently editable by the Editor.
 _Avoid_: News item, page, entry
 
+**Manuscript**:
+A Word document written by the Editor from which a new Blog Post is started or an existing Blog Post's body is replaced. It is a one-off source, not a lasting copy of the Blog Post.
+_Avoid_: Word draft, upload, source document
+
+**Manuscript Template**:
+The Word document KMSC gives the Editor that shows how to lay out a Manuscript so it can be read correctly.
+_Avoid_: Blog template, sample post
+
 **Media Asset**:
 An approved image associated with Page Content or a Blog Post.
 _Avoid_: Arbitrary file, attachment
