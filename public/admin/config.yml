@@ -87,13 +87,14 @@ collections:
     identifier_field: slug
     slug: "{{slug}}"
     fields:
-      - { name: title, label: Title, widget: string, hint: "Use a clear, specific title for the Blog Post. Avoid unsupported outcomes, statistics, certifications, or client claims." }
+      - { name: manuscript, label: Start from Word document, widget: manuscript_import, required: false, hint: "Choose a Word document (.docx) written from the Manuscript Template. The title and body are filled in below for you to review; nothing is published until you press Publish." }
+      - { name: title, label: Title, widget: unescaped_string, hint: "Use a clear, specific title for the Blog Post. Avoid unsupported outcomes, statistics, certifications, or client claims." }
       - { name: slug, label: URL slug, widget: string, hint: "Stable lowercase URL words separated by hyphens; must be unique. Changing it changes the public URL. Example: practical-iso-training" }
       - { name: summary, label: Summary, widget: text, hint: "A concise description shown on the Blog index and used as search metadata." }
       - { name: date, label: Publication date, widget: datetime, date_format: YYYY-MM-DD, time_format: false, hint: "Use the intended publication date, not the date you happen to edit the Blog Post." }
       - { name: cover, label: Cover image, widget: image, required: false, hint: "Optional Media Asset. Use an approved JPG, PNG, or WebP image only." }
       - { name: coverAlt, label: Cover image description, widget: string, required: false, hint: "Optional when no cover is used; required when a cover image is provided. Describe the image for screen-reader users." }
-      - { name: body, label: Body, widget: markdown, hint: "Write the approved Blog Post in clear paragraphs. Do not add fabricated case studies, testimonials, or claims." }
+      - { name: body, label: Body, widget: unescaped_markdown, hint: "Write the approved Blog Post in clear paragraphs. Do not add fabricated case studies, testimonials, or claims." }
       - { name: tags, label: Tags, widget: list, required: false, hint: "Add a few relevant lowercase topics; leave empty if none are approved." }
       - { name: author, label: Blog Post byline, widget: string, default: Dr. Sundar Subramani, hint: "Default: Dr. Sundar Subramani. Do not repeat the Director, Principal Consultant role here." }
       - { name: noindex, label: Exclude from search engines, widget: boolean, default: true, hint: "Keep enabled while Page Content and the Blog Post are being prepared." }

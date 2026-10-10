@@ -69,7 +69,7 @@ test('generated artifacts contain no OAuth credentials or private keys', async (
 });
 
 test('the editor bundle is served same-origin and never from a CDN', async () => {
-  const adminPage = await readFile('src/pages/admin/index.html', 'utf8');
+  const adminPage = await readFile('dist/admin/index.html', 'utf8');
   // The editor receives the GitHub access token, so a third-party host able to
   // answer for that script could exfiltrate a token with push access to main.
   const scriptSources = [...adminPage.matchAll(/<script[^>]*\ssrc="([^"]+)"/gi)].map(match => match[1]);
