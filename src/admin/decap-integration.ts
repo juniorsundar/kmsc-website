@@ -14,10 +14,29 @@ const read = (): Record<string, string> => { try { return JSON.parse(sessionStor
 const decapEscape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
+const localDate = () => {
+  const now = new Date();
+  return [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((part, i) => String(part).padStart(i ? 2 : 4, '0')).join('-');
+};
+
 // Text the Editor can read and edit: undo Decap's escaping of the importer's values.
+// The body also offers Replace from Word, which swaps in the body of a Manuscript and touches no other field.
 for (const [name, kind] of [['unescaped_string', 'string'], ['unescaped_text', 'text'], ['unescaped_markdown', 'markdown']] as const) {
   const inner = w.CMS.getWidget(kind);
   const Control = w.createClass({
+    getInitialState() { return { problem: '', warnings: [] as string[], version: 0 }; },
+    async onReplace(event: Event) {
+      const input = event.target as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      this.setState({ problem: '', warnings: [] });
+      const result = await importManuscript(await file.arrayBuffer(), { existingSlugs: [], today: localDate() });
+      if (!result.ok) return this.setState({ problem: result.reason });
+      this.props.onChange(result.fields.body);
+      // The markdown editor reads `value` only when it mounts, so remount it to show the new body.
+      this.setState((state: { version: number }) => ({ warnings: result.warnings, version: state.version + 1 }));
+    },
     componentDidMount() {
       const raw = read()[this.props.field.get('name')];
       if (this.props.entry.get('newRecord') && raw !== undefined && this.props.value === decapEscape(raw)) this.props.onChange(raw);
@@ -25,7 +44,14 @@ for (const [name, kind] of [['unescaped_string', 'string'], ['unescaped_text', '
     // The markdown editor reads `value` only when it mounts, so show the unescaped text from the first render.
     render() {
       const raw = this.props.entry.get('newRecord') ? read()[this.props.field.get('name')] : undefined;
-      return w.h(inner.control, { ...this.props, value: raw !== undefined && this.props.value === decapEscape(raw) ? raw : this.props.value });
+      const control = w.h(inner.control, { key: this.state.version, ...this.props, value: raw !== undefined && this.props.value === decapEscape(raw) ? raw : this.props.value });
+      if (kind !== 'markdown') return control;
+      return w.h('div', null,
+        w.h('p', null, w.h('label', null, 'Replace the body from a Word document ',
+          w.h('input', { type: 'file', accept: '.docx', 'aria-label': 'Replace the body from a Word document', onChange: (event: Event) => this.onReplace(event) }))),
+        this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem),
+        this.state.warnings.map((warning: string) => w.h('p', { key: warning, role: 'status' }, warning)),
+        control);
     }
   });
   w.CMS.registerWidget(name, Control, inner.preview);
@@ -55,11 +81,6 @@ async function existingSlugs() {
   }
 }
 
-const localDate = () => {
-  const now = new Date();
-  return [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((part, i) => String(part).padStart(i ? 2 : 4, '0')).join('-');
-};
-
 w.CMS.registerWidget('manuscript_import', w.createClass({
   getInitialState() { return { problem: '', warnings: readWarnings() }; },
   async onPick(event: Event) {
@@ -88,7 +109,7 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
   render() {
     if (!this.props.entry.get('newRecord')) return w.h('p', { id: this.props.forID }, 'Start from Word document is available when creating a new Blog Post.');
     return w.h('div', { id: this.props.forID },
-      w.h('input', { type: 'file', accept: '.docx', onChange: (event: Event) => this.onPick(event) }),
+      w.h('input', { type: 'file', accept: '.docx', 'aria-label': 'Start from Word document', onChange: (event: Event) => this.onPick(event) }),
       w.h('p', null, w.h('a', { href: '/admin/manuscript-template.docx', download: '' }, 'Download the Manuscript Template')),
       this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem),
       // The control is mounted anew with the pre-filled form, so warnings are kept in sessionStorage; a blank form shows none.
