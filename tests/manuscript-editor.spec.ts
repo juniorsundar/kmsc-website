@@ -65,3 +65,21 @@ test('a second import replaces the first, and a reload keeps the text readable',
   await page.getByRole('button', { name: /login/i }).click({ timeout: 2000 }).catch(() => {}); // the test backend may remember the login
   await expect(page.locator('[id^="title-field"]').first()).toHaveValue(`Tom & Jerry's <Big> Plan`);
 });
+
+test('the import control offers the Manuscript Template as a download that opens as a Word document', async ({ page }) => {
+  await openEditor(page);
+  await page.goto('/admin/#/collections/blog/new');
+  const link = page.getByRole('link', { name: 'Download the Manuscript Template' });
+  const href = await link.getAttribute('href');
+  expect(href).toMatch(/\.docx$/);
+
+  const response = await page.request.get(href!);
+  expect(response.ok()).toBe(true);
+  const bytes = await response.body();
+  expect(bytes.subarray(0, 2).toString()).toBe('PK'); // a .docx is a zip file
+
+  // The template the Editor downloads is the one the importer rejects when left unedited.
+  await page.locator('input[type=file]').setInputFiles({ name: 'manuscript-template.docx', mimeType: 'application/octet-stream', buffer: bytes });
+  await expect(page.getByRole('alert')).toContainText('Replace');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue('');
+});

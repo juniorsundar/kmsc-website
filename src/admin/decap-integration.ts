@@ -54,6 +54,7 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
     if (!this.props.entry.get('newRecord')) return w.h('p', { id: this.props.forID }, 'Start from Word document is available when creating a new Blog Post.');
     return w.h('div', { id: this.props.forID },
       w.h('input', { type: 'file', accept: '.docx', onChange: (event: Event) => this.onPick(event) }),
+      w.h('p', null, w.h('a', { href: '/admin/manuscript-template.docx', download: '' }, 'Download the Manuscript Template')),
       this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem));
   }
 }), () => null);

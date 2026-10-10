@@ -1,5 +1,6 @@
 import mammoth from 'mammoth';
 import TurndownService from 'turndown';
+import placeholders from './manuscript-placeholders.js';
 
 export type ImportResult =
   | { ok: true; fields: { title: string; body: string }; warnings: string[] }
@@ -34,5 +35,9 @@ export async function importManuscript(bytes: ArrayBuffer): Promise<ImportResult
   const title = plainText(first?.[1] ?? '');
   const body = turndown.turndown(first ? html.replace(first[0], '') : html).trim();
   if (!title) return { ok: false, reason: 'This Word document has no title. Start it with a Title-style line.' };
+
+  // The same phrases are written into the Manuscript Template, so an unedited copy can never become a Blog Post.
+  const unedited = Object.entries(placeholders).filter(([name, phrase]) => name !== 'keywords' && (title + '\n' + body).includes(phrase)).map(([, phrase]) => phrase);
+  if (unedited.length) return { ok: false, reason: `This Word document still contains text from the Manuscript Template. Replace: "${unedited.join('", "')}".` };
   return { ok: true, fields: { title, body }, warnings: [] };
 }
