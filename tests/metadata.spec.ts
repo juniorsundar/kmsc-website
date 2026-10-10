@@ -116,3 +116,26 @@ test('the editor global noindex setting withholds an otherwise indexable build',
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('a Blog Post with no search setting is withheld from search engines', async () => {
+  const root = await build('production');
+  try {
+    // Hand-made content (or a file from an older editor) may omit the setting entirely; it must fail safe.
+    const post = JSON.parse(await readFile(join(root, 'content/blog/indexable.json'), 'utf8'));
+    delete post.noindex;
+    post.slug = 'no-search-setting';
+    post.title = 'A Blog Post With No Search Setting';
+    await writeFile(join(root, 'content/blog/no-search-setting.json'), JSON.stringify(post));
+    const rebuilt = spawnSync('npm', ['run', 'build'], { cwd: root, env: { ...process.env, PUBLIC_FORMSPREE_ENDPOINT: 'https://formspree.io/f/test-production-form', PUBLIC_INDEXING_ENABLED: 'true' }, encoding: 'utf8' });
+    if (rebuilt.status !== 0) throw new Error(`build failed:\n${rebuilt.stdout}\n${rebuilt.stderr}`);
+
+    const html = await readFile(join(root, 'dist/blog/no-search-setting/index.html'), 'utf8');
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(await readFile(join(root, 'dist', 'sitemap.xml'), 'utf8')).not.toContain('/blog/no-search-setting/');
+    // Control: the same post with the setting switched off is indexable, so the assertion above is not vacuous.
+    const indexable = await readFile(join(root, 'dist', indexableBlogRoute, 'index.html'), 'utf8');
+    expect(indexable).not.toContain('name="robots" content="noindex, nofollow"');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

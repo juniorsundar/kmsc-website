@@ -65,6 +65,8 @@ test('invalid Blog Post fields fail validation with actionable errors', async ()
     { mutate: post => { post.date = '2025-02-30'; }, message: 'date' },
     { mutate: post => { post.cover = '/media/missing.png'; }, message: 'cover Media Asset "/media/missing.png" does not exist' },
     { mutate: post => { delete post.coverAlt; }, message: 'coverAlt: is required when cover is provided' },
+    { mutate: post => { post.coverAlt = 'Cover image description'; }, message: 'coverAlt: write a sentence describing the cover image' },
+    { mutate: post => { post.coverAlt = '  cover IMAGE description. '; }, message: 'coverAlt: write a sentence describing the cover image' },
     { mutate: post => { post.body = '![Unsupported](/media/missing.gif)'; }, message: 'body Media Asset "/media/missing.gif" must reference an approved' },
     { mutate: post => { post.body = '![Missing](/media/missing.png)'; }, message: 'body Media Asset "/media/missing.png" does not exist' },
     { mutate: post => { post.body = '- ![Missing](/media/missing.png)'; }, message: 'body Media Asset "/media/missing.png" does not exist' },

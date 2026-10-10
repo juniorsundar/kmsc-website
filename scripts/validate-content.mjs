@@ -46,7 +46,8 @@ const blogPost = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   author: z.string().trim().min(1),
   cover: z.string().regex(/^\/media\/.+\.(jpe?g|png|webp)$/i, 'must reference an approved /media JPG, PNG, or WebP Media Asset').optional(),
-  coverAlt: z.string().trim().min(1).optional(),
+  // The editor form's own placeholder; screen-reader users would hear it instead of a description.
+  coverAlt: z.string().trim().min(1).refine(text => !/^cover image description\.?$/i.test(text), 'write a sentence describing the cover image, not the placeholder').optional(),
   noindex: z.boolean().default(true)
 }).superRefine((post, context) => {
   if (post.cover && !post.coverAlt) {

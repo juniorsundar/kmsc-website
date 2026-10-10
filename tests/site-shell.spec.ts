@@ -282,6 +282,20 @@ test('Decap config does not expose a provider secret', async ({ page }) => {
   expect(text).toContain('blog');
 });
 
+test('the Blog Post form lists its fields in the agreed order, with automatic fields explained', async ({ page }) => {
+  const response = await page.goto('/admin/config.yml');
+  const text = await response!.text();
+  const blog = text.slice(text.indexOf('- name: blog'));
+  const names = [...blog.matchAll(/^\s+- \{ name: (\w+),/gm)].map(match => match[1]);
+  expect(names).toEqual(['manuscript', 'cover', 'coverAlt', 'title', 'summary', 'body', 'date', 'tags', 'slug', 'author', 'noindex']);
+
+  const field = (name: string) => blog.match(new RegExp(`^\\s+- \\{ name: ${name},.*$`, 'm'))![0];
+  for (const name of ['slug', 'author', 'noindex']) expect(field(name), name).toContain('Filled in automatically from your Word document; normally leave as is.');
+  expect(field('slug')).toContain('Changing it changes the public URL');
+  expect(field('noindex')).toContain('default: false');
+  expect(field('noindex')).toContain('label: Hide from search engines');
+});
+
 // ── Forbidden names ────────────────────────────────────────────────
 
 test('incorrect business names do not appear as KMSC identity', async ({ page }) => {
