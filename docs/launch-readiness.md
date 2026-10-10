@@ -63,7 +63,7 @@ Indexing needs two independent permissions, and either one alone withholds the w
 | --- | --- | --- |
 | `PUBLIC_INDEXING_ENABLED` repository variable | Operator, once at launch | Authorises production releases to be indexable at all. Preview and pull-request builds are never indexable. |
 | **Exclude the whole website from search engines** in the Editor | KMSC, at any time | The live on/off switch. ON withholds every page; OFF publishes the website to search engines. |
-| **Exclude from search engines** on a Blog Post | KMSC, per post | Withholds that one post even when the website is indexable. Defaults to ON for new posts. |
+| **Hide from search engines** on a Blog Post | KMSC, per post | Withholds that one post even when the website is indexable. Defaults to OFF (visible) for new posts; a Blog Post file with no value is treated as hidden. |
 
 Once the operator has set the repository variable, KMSC owns the decision from the Editor and no repository or CI change is needed to publish or withdraw the website. A change takes effect on the next release, which the Editor triggers automatically when it saves.
 
