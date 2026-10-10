@@ -237,3 +237,23 @@ test('Replace from Word reports skipped images and is also offered on a new Blog
   await page.goto('/admin/#/collections/blog/new');
   await expect(replaceInput(page)).toBeVisible();
 });
+
+test('Replace from Word on a pre-filled new Blog Post keeps the replacement, not the earlier import', async ({ page }) => {
+  page.on('dialog', dialog => void dialog.accept().catch(() => {}));
+  await openEditor(page);
+  await page.goto('/admin/#/collections/blog/new');
+  await page.getByLabel('Start from Word document', { exact: true }).setInputFiles('tests/fixtures/manuscripts/styled.docx');
+  await expect(bodyEditor(page)).toContainText('The opening paragraph of the article.');
+
+  await replaceInput(page).setInputFiles('tests/fixtures/manuscripts/template-filled.docx');
+  await expect(bodyEditor(page)).toContainText('Pick one behaviour and practise it on real work.');
+  await expect(bodyEditor(page)).not.toContainText('opening paragraph of the article');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue(`Tom & Jerry's <Big> Plan`);
+
+  await page.getByRole('button', { name: /^publish/i }).click();
+  await page.getByText(/publish now/i).click();
+  await expect.poll(async () => (await savedPost(page)).body).toContain('Pick one behaviour');
+  const saved = await savedPost(page);
+  expect(saved.body).not.toContain('opening paragraph of the article');
+  expect(saved.title).toBe(`Tom & Jerry's <Big> Plan`);
+});
