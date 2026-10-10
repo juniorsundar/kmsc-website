@@ -118,6 +118,17 @@ test('a long opening paragraph is cut after the last sentence that ends within 2
   expect(summary.length).toBeLessThanOrEqual(200);
 });
 
+test('a short first sentence is kept when the text after it has no sentence end in range', async () => {
+  const rest = Array.from({ length: 60 }, (_, i) => `word${i}`).join(' ');
+  expect((await fields(await variant({ text: [[opening, `Short one. ${rest}`]] }))).summary).toBe('Short one.');
+});
+
+test('an abbreviation such as Dr. does not end the summary early', async () => {
+  const sentence = 'Dr. Sundar explains why teams that practise together outperform teams that only train together, using three short examples from client work.';
+  const rest = Array.from({ length: 40 }, (_, i) => `word${i}`).join(' ');
+  expect((await fields(await variant({ text: [[opening, `${sentence} ${rest}`]] }))).summary).toBe(sentence);
+});
+
 test('a single sentence longer than 200 characters is cut at a word with an ellipsis', async () => {
   const sentence = Array.from({ length: 60 }, (_, i) => `word${i}`).join(' ') + '.';
   const summary = (await fields(await variant({ text: [[opening, sentence]] }))).summary;

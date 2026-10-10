@@ -29,6 +29,7 @@ const defaultAuthor = 'Dr. Sundar Subramani';
 const summaryLimit = 200;
 const slugMaxWords = 8;
 const slugMaxLength = 60;
+const abbreviation = /(?:^|\s)(?:dr|mr|mrs|ms|prof|sr|jr|st|vs|etc|no|e\.g|i\.e)\.$/i;
 const fillerWords = new Set(['a', 'an', 'the', 'of', 'to', 'in', 'on', 'at', 'for', 'and', 'or', 'is', 'are', 'be', 'by', 'with', 'from', 'as']);
 
 const entities: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&apos;': "'" };
@@ -47,13 +48,13 @@ async function coreProperty(zip: JSZip, tag: string) {
 function summaryFrom(paragraph: string) {
   const text = paragraph.replace(/\s+/g, ' ').trim();
   if (text.length <= summaryLimit) return text;
-  // shortcut: sentence ends are found by punctuation, so an abbreviation such as "Dr." can end one early;
-  // ends before 40 characters are ignored to limit that. The Editor can edit the summary.
+  // shortcut: sentence ends are found by punctuation; only the abbreviations listed here are skipped, so an
+  // unlisted one (such as "approx.") can end a sentence early. The Editor can edit the summary.
   let end = 0;
   for (const match of text.matchAll(/[.!?]["')\]]*(?=\s|$)/g)) {
     const stop = match.index + match[0].length;
     if (stop > summaryLimit) break;
-    if (stop >= 40) end = stop;
+    if (!abbreviation.test(text.slice(0, match.index + 1))) end = stop;
   }
   if (end) return text.slice(0, end);
   const cut = text.slice(0, summaryLimit - 1);
