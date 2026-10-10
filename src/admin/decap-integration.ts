@@ -8,6 +8,8 @@ const w = window as any;
 // these values and for nothing the Editor typed or an existing Blog Post holds.
 // Kept in sessionStorage so a page reload of the pre-filled form still unescapes.
 const key = 'kmsc-manuscript-import';
+const warningsKey = 'kmsc-manuscript-import-warnings';
+const readWarnings = (): string[] => { try { return JSON.parse(sessionStorage.getItem(warningsKey) ?? '[]'); } catch { return []; } };
 const read = (): Record<string, string> => { try { return JSON.parse(sessionStorage.getItem(key) ?? '{}'); } catch { return {}; } };
 const decapEscape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -71,6 +73,7 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
     const { tags, noindex, ...text } = result.fields;
     const sent = { ...text, tags: tags.join(','), noindex: String(noindex) };
     sessionStorage.setItem(key, JSON.stringify(sent));
+    sessionStorage.setItem(warningsKey, JSON.stringify(result.warnings));
     const target = '#/collections/blog/new?' + new URLSearchParams(sent);
     // Decap only builds a fresh draft when the form is mounted anew, so leave the form, wait until it is gone, then re-enter.
     location.hash = '#/collections/blog';
@@ -86,6 +89,8 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
     return w.h('div', { id: this.props.forID },
       w.h('input', { type: 'file', accept: '.docx', onChange: (event: Event) => this.onPick(event) }),
       w.h('p', null, w.h('a', { href: '/admin/manuscript-template.docx', download: '' }, 'Download the Manuscript Template')),
-      this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem));
+      this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem),
+      // The control is mounted anew with the pre-filled form, so warnings are kept in sessionStorage; a blank form shows none.
+      location.hash.includes('?') && readWarnings().map((warning: string) => w.h('p', { key: warning, role: 'status' }, warning)));
   }
 }), () => null);

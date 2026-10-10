@@ -196,3 +196,64 @@ test('a Manuscript whose Tags property is still the template placeholder is reje
   const result = await importManuscript(bytes);
   expect(result).toMatchObject({ ok: false, reason: expect.stringContaining('replace-this-with-your-topics') });
 });
+
+// ── Formatting: what survives from Word and what does not ───────────────
+const formatted = async () => {
+  const result = await importManuscript(await manuscript('formatting'));
+  if (!result.ok) throw new Error(result.reason);
+  return result;
+};
+
+test('bold, italic and hyperlinks are kept', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toContain('**bold**');
+  expect(fields.body).toContain('_italic_');
+  expect(fields.body).toContain('[link to KMSC](https://kautilyamsc.com/about/)');
+});
+
+test('bulleted and numbered lists are kept, including nested ones', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toMatch(/^-\s+first bullet\n\s+-\s+nested bullet\n\s+-\s+deeper bullet\n-\s+second bullet$/m);
+  expect(fields.body).toMatch(/^1\.\s+first step\n\s+1\.\s+nested step\n2\.\s+second step$/m);
+});
+
+test('a table is kept as a table', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toMatch(/\| Stage \| Owner \|\n\| ?-+ ?\| ?-+ ?\|\n\| Plan \| Team \|\n\| Do \| Lead \|/);
+});
+
+test('footnotes become numbered notes at the end of the body', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toContain('It has a note.[1]');
+  const notes = fields.body.slice(fields.body.lastIndexOf('\n\n') + 2);
+  expect(notes).toBe('1. Note text with _emphasis_.');
+  expect(fields.body).not.toContain('↑');
+  expect(fields.body).not.toContain('footnote-');
+});
+
+test('colours, fonts, highlighting and comments leave only their plain text', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toContain('Text with ~~struck out~~ words, and a commented phrase, plus red yellow comic text.');
+  expect(fields.body).not.toMatch(/Comic|FF0000|highlight|style=/);
+});
+
+test('embedded images are removed with one warning that counts them and points to the cover image', async () => {
+  const { fields, warnings } = await formatted();
+  expect(fields.body).not.toMatch(/!\[|data:image|<img/);
+  expect(warnings).toEqual(['2 images in the Word document were not imported. Upload the cover image separately in the editor.']);
+});
+
+test('one skipped image is described in the singular', async () => {
+  const result = await importManuscript(await manuscript('one-image'));
+  expect(result).toMatchObject({ ok: true, warnings: ['1 image in the Word document was not imported. Upload the cover image separately in the editor.'] });
+});
+
+test('a Manuscript without images produces no warning', async () => {
+  expect(await importManuscript(await manuscript('template-filled'))).toMatchObject({ ok: true, warnings: [] });
+});
+
+test('text that looks like HTML is plain text, never raw HTML in the body', async () => {
+  const { fields } = await formatted();
+  expect(fields.body).toContain('A line that types \\<script>alert(1)\\</script> and & as plain words');
+  expect(fields.body).not.toMatch(/(^|[^\\])<script/);
+});

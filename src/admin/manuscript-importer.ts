@@ -1,6 +1,7 @@
 import mammoth from 'mammoth';
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
+import { gfm } from 'turndown-plugin-gfm';
 import placeholders from './manuscript-placeholders.js';
 
 export type ImportOptions = {
@@ -36,7 +37,30 @@ const entities: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>
 const unescapeXml = (text: string) => text.replace(/&(?:amp|lt|gt|quot|#39|apos);/g, entity => entities[entity]);
 const plainText = (html: string) => unescapeXml(html.replace(/<[^>]+>/g, '')).trim();
 
-const turndown = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', codeBlockStyle: 'fenced' });
+const turndown = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', emDelimiter: '_', codeBlockStyle: 'fenced' });
+turndown.use(gfm); // tables and strikethrough
+
+// Word footnotes arrive as superscript links and a trailing list. Keep them as plain numbered notes:
+// "[1]" in the text and "1. note" at the end, with no links back.
+const isFootnoteItem = (node: Node) => node.nodeName === 'LI' && /^footnote-\d/.test((node as Element).id);
+turndown.addRule('footnoteReference', {
+  filter: node => node.nodeName === 'SUP' && !!node.querySelector('a[id^="footnote-ref-"]'),
+  replacement: (_content, node) => node.textContent ?? ''
+});
+turndown.addRule('footnoteList', {
+  filter: node => node.nodeName === 'OL' && Array.from(node.children).some(isFootnoteItem),
+  replacement: (_content, node) => '\n\n' + Array.from(node.children)
+    .map((item, index) => `${index + 1}. ${turndown.turndown(item.innerHTML.replace(/<a href="#footnote-ref-[^"]*">[^<]*<\/a>/g, '')).trim()}`).join('\n') + '\n\n'
+});
+// Table cells hold a paragraph in Word; unwrap it so each row stays on one line.
+turndown.addRule('tableCellParagraph', {
+  filter: node => node.nodeName === 'P' && !!node.parentNode && ['TD', 'TH'].includes(node.parentNode.nodeName),
+  replacement: content => content
+});
+turndown.addRule('strikethrough', { filter: ['s', 'del'], replacement: content => `~~${content}~~` });
+// Typed angle brackets are text, never HTML: the site would escape raw HTML anyway, so keep it out of the body.
+const escapeText = turndown.escape.bind(turndown);
+turndown.escape = text => escapeText(text).replace(/</g, '\\<');
 
 // shortcut: core properties are read with patterns, not an XML parser (none exists in Node tests); Word writes
 // them as flat elements. Upgrade if a property ever carries nested markup.
@@ -83,9 +107,13 @@ const tagsFrom = (keywords: string) => [...new Set(keywords.split(/[,;]/)
 export async function importManuscript(bytes: ArrayBuffer, { existingSlugs, today }: ImportOptions): Promise<ImportResult> {
   let html: string;
   let zip: JSZip;
+  let images = 0;
   try {
     // mammoth's Node build reads `buffer`, its browser build reads `arrayBuffer`; the bundler picks the build.
-    html = (await mammoth.convertToHtml({ arrayBuffer: bytes, buffer: bytes as unknown as Buffer }, { styleMap })).value;
+    // Images are counted and dropped: the cover image is uploaded separately, so nothing unapproved is published.
+    const convertImage = mammoth.images.imgElement(async () => { images++; return { src: '' }; });
+    html = (await mammoth.convertToHtml({ arrayBuffer: bytes, buffer: bytes as unknown as Buffer }, { styleMap, convertImage })).value
+      .replace(/<img[^>]*>/g, '');
     zip = await JSZip.loadAsync(bytes);
   } catch {
     return { ok: false, reason: 'This file could not be read as a Word document. Save it as a .docx file in Word and try again.' };
@@ -116,6 +144,6 @@ export async function importManuscript(bytes: ArrayBuffer, { existingSlugs, toda
   return {
     ok: true,
     fields: { title, slug: slugFrom(title, today, existingSlugs), summary, date: today, body, tags: tagsFrom(keywords), author: defaultAuthor, noindex: false },
-    warnings: []
+    warnings: images ? [`${images === 1 ? '1 image' : `${images} images`} in the Word document ${images === 1 ? 'was' : 'were'} not imported. Upload the cover image separately in the editor.`] : []
   };
 }

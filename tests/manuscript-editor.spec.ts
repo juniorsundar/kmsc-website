@@ -128,3 +128,21 @@ test('the import control offers the Manuscript Template as a download that opens
   await expect(page.getByRole('alert')).toContainText('Replace');
   await expect(page.locator('[id^="title-field"]').first()).toHaveValue('');
 });
+
+test('skipped images are reported beside the pre-filled form, and a blank form shows no warning', async ({ page }) => {
+  page.on('dialog', dialog => void dialog.accept().catch(() => {})); // Decap asks before leaving a filled-in form
+  await openEditor(page);
+  await page.goto('/admin/#/collections/blog/new');
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/formatting.docx');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue('Formatting fixture');
+  await expect(page.getByRole('status')).toContainText('2 images in the Word document were not imported. Upload the cover image separately in the editor.');
+  await expect(page.locator('[data-slate-editor]').first()).not.toContainText('data:image');
+
+  // A form opened without an import (no pre-fill in the address) never shows an earlier import's warning.
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/admin/#/collections/blog/new');
+  await page.reload();
+  await page.getByRole('button', { name: /login/i }).click({ timeout: 2000 }).catch(() => {});
+  await expect(page.locator('input[type=file]')).toBeVisible();
+  await expect(page.getByRole('status')).toHaveCount(0);
+});
