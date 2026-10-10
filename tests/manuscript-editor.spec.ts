@@ -43,3 +43,25 @@ test('a file that is not a Word document is rejected and no form opens', async (
   await expect(page.getByRole('alert')).toContainText('.docx');
   await expect(page.locator('[id^="title-field"]').first()).toHaveValue('');
 });
+
+test('a second import replaces the first, and a reload keeps the text readable', async ({ page }) => {
+  const prompts: string[] = [];
+  page.on('dialog', dialog => { prompts.push(dialog.message()); void dialog.accept(); });
+  await openEditor(page);
+  await page.goto('/admin/#/collections/blog/new');
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/styled.docx');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue(`Tom & Jerry's <Big> Plan`);
+
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/untitled.docx');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue('This first paragraph is the only title signal.');
+  await expect(page.locator('[data-slate-editor]').first()).not.toContainText('opening paragraph');
+
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/styled.docx');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue(`Tom & Jerry's <Big> Plan`);
+  expect(prompts.length, 'Decap warns before replacing an already-filled form').toBeGreaterThan(0);
+  page.removeAllListeners('dialog');
+  page.on('dialog', dialog => void dialog.accept());
+  await page.reload();
+  await page.getByRole('button', { name: /login/i }).click({ timeout: 2000 }).catch(() => {}); // the test backend may remember the login
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue(`Tom & Jerry's <Big> Plan`);
+});

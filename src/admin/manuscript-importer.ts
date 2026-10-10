@@ -23,17 +23,16 @@ export async function importManuscript(bytes: ArrayBuffer): Promise<ImportResult
   let html: string;
   try {
     // mammoth's Node build reads `buffer`, its browser build reads `arrayBuffer`; the bundler picks the build.
-    html = (await mammoth.convertToHtml({ arrayBuffer: bytes, buffer: bytes } as never, { styleMap })).value;
+    html = (await mammoth.convertToHtml({ arrayBuffer: bytes, buffer: bytes as unknown as Buffer }, { styleMap })).value;
   } catch {
     return { ok: false, reason: 'This file could not be read as a Word document. Save it as a .docx file in Word and try again.' };
   }
   if (!plainText(html)) return { ok: false, reason: 'This Word document has no text to import.' };
 
-  // shortcut: the title is taken with a pattern, not a DOM; mammoth emits flat, well-formed HTML.
-  const titled = html.match(/^<h1 class="manuscript-title">(.*?)<\/h1>/);
-  const first = titled ?? html.match(/^<p>(.*?)<\/p>/);
+  // shortcut: the title is found with a pattern, not a DOM; mammoth emits flat, well-formed HTML.
+  const first = html.match(/<h1 class="manuscript-title">(.*?)<\/h1>/) ?? html.match(/<p>(.*?)<\/p>/);
   const title = plainText(first?.[1] ?? '');
-  const body = turndown.turndown(first ? html.slice(first[0].length) : html).trim();
+  const body = turndown.turndown(first ? html.replace(first[0], '') : html).trim();
   if (!title) return { ok: false, reason: 'This Word document has no title. Start it with a Title-style line.' };
   return { ok: true, fields: { title, body }, warnings: [] };
 }
