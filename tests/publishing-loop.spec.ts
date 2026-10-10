@@ -96,3 +96,22 @@ test('invalid editorial content cannot enter the deployment path', async () => {
     await rm(fixtureRoot, { recursive: true, force: true });
   }
 });
+
+test('the Editor guide explains publishing from a Word Manuscript in the order the Editor does it', async () => {
+  const guide = await readFile('docs/editor-setup.md', 'utf8');
+  const steps = ['Download the Manuscript Template', 'Start from Word document', 'Cover image description', 'Publish', 'Replace the body from a Word document'];
+  let position = -1;
+  for (const step of steps) {
+    const found = guide.indexOf(step, position + 1);
+    expect(found, `"${step}" should appear after the previous step`).toBeGreaterThan(position);
+    position = found;
+  }
+  // The rules the Editor must follow in Word, as the importer reads them.
+  for (const rule of ['Title style', 'Heading 1', 'Heading 2', 'File > Info', 'pictures', '.docx']) expect(guide, rule).toContain(rule);
+});
+
+test('the publishing-loop guide has a checklist for the Manuscript import on the live site', async () => {
+  const guide = await readFile('docs/publishing-loop.md', 'utf8');
+  expect(guide).toContain('## Manuscript import check');
+  for (const item of ['Start from Word document', 'Replace the body from a Word document', 'Download the Manuscript Template', 'noindex: true']) expect(guide, item).toContain(item);
+});
