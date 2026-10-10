@@ -61,15 +61,16 @@ const localDate = () => {
 };
 
 w.CMS.registerWidget('manuscript_import', w.createClass({
-  getInitialState() { return { problem: '' }; },
+  getInitialState() { return { problem: '', warnings: readWarnings() }; },
   async onPick(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+    sessionStorage.removeItem(warningsKey);
+    this.setState({ problem: '', warnings: [] });
     const result = await importManuscript(await file.arrayBuffer(), { existingSlugs: await existingSlugs(), today: localDate() });
     if (!result.ok) return this.setState({ problem: result.reason });
-    this.setState({ problem: '' });
     const { tags, noindex, ...text } = result.fields;
     const sent = { ...text, tags: tags.join(','), noindex: String(noindex) };
     sessionStorage.setItem(key, JSON.stringify(sent));
@@ -91,6 +92,6 @@ w.CMS.registerWidget('manuscript_import', w.createClass({
       w.h('p', null, w.h('a', { href: '/admin/manuscript-template.docx', download: '' }, 'Download the Manuscript Template')),
       this.state.problem && w.h('p', { role: 'alert', style: { color: '#b00020' } }, this.state.problem),
       // The control is mounted anew with the pre-filled form, so warnings are kept in sessionStorage; a blank form shows none.
-      location.hash.includes('?') && readWarnings().map((warning: string) => w.h('p', { key: warning, role: 'status' }, warning)));
+      location.hash.includes('?') && this.state.warnings.map((warning: string) => w.h('p', { key: warning, role: 'status' }, warning)));
   }
 }), () => null);

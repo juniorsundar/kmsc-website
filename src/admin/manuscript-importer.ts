@@ -1,7 +1,6 @@
 import mammoth from 'mammoth';
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
-import { gfm } from 'turndown-plugin-gfm';
 import placeholders from './manuscript-placeholders.js';
 
 export type ImportOptions = {
@@ -38,19 +37,32 @@ const unescapeXml = (text: string) => text.replace(/&(?:amp|lt|gt|quot|#39|apos)
 const plainText = (html: string) => unescapeXml(html.replace(/<[^>]+>/g, '')).trim();
 
 const turndown = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', emDelimiter: '_', codeBlockStyle: 'fenced' });
-turndown.use(gfm); // tables and strikethrough
 
 // Word footnotes arrive as superscript links and a trailing list. Keep them as plain numbered notes:
 // "[1]" in the text and "1. note" at the end, with no links back.
-const isFootnoteItem = (node: Node) => node.nodeName === 'LI' && /^footnote-\d/.test((node as Element).id);
-turndown.addRule('footnoteReference', {
-  filter: node => node.nodeName === 'SUP' && !!node.querySelector('a[id^="footnote-ref-"]'),
+const isNoteItem = (node: Node) => node.nodeName === 'LI' && /^(foot|end)note-\d/.test((node as Element).id);
+turndown.addRule('noteReference', {
+  filter: node => node.nodeName === 'SUP' && !!node.querySelector('a[id^="footnote-ref-"], a[id^="endnote-ref-"]'),
   replacement: (_content, node) => node.textContent ?? ''
 });
-turndown.addRule('footnoteList', {
-  filter: node => node.nodeName === 'OL' && Array.from(node.children).some(isFootnoteItem),
+turndown.addRule('noteList', {
+  filter: node => node.nodeName === 'OL' && Array.from(node.children).some(isNoteItem),
   replacement: (_content, node) => '\n\n' + Array.from(node.children)
-    .map((item, index) => `${index + 1}. ${turndown.turndown(item.innerHTML.replace(/<a href="#footnote-ref-[^"]*">[^<]*<\/a>/g, '')).trim()}`).join('\n') + '\n\n'
+    .map((item, index) => `${index + 1}. ${turndown.turndown(item.innerHTML.replace(/<a href="#(?:foot|end)note-ref-[^"]*">[^<]*<\/a>/g, '')).trim()}`).join('\n') + '\n\n'
+});
+// Word tables rarely mark a header row, and Markdown needs one, so the first row always becomes the header.
+// Cells are flattened to one line and pipes escaped, so a table never turns into raw HTML (which the site would show as text).
+// shortcut: merged cells are not spanned; their text lands in the first cell and the row is padded with empty cells.
+turndown.addRule('table', {
+  filter: 'table',
+  replacement: (_content, node) => {
+    const rows = Array.from((node as Element).querySelectorAll('tr')).map(row => Array.from(row.children)
+      .filter(cell => cell.nodeName === 'TD' || cell.nodeName === 'TH')
+      .map(cell => turndown.turndown(cell.innerHTML).replace(/\s*\n+\s*/g, ' ').replace(/\|/g, '\\|').trim()));
+    const width = Math.max(...rows.map(row => row.length), 1);
+    const line = (cells: string[]) => `| ${Array.from({ length: width }, (_, i) => cells[i] ?? '').join(' | ')} |`;
+    return `\n\n${[line(rows[0] ?? []), line(Array(width).fill('---')), ...rows.slice(1).map(line)].join('\n')}\n\n`;
+  }
 });
 // Table cells hold a paragraph in Word; unwrap it so each row stays on one line.
 turndown.addRule('tableCellParagraph', {

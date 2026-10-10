@@ -146,3 +146,23 @@ test('skipped images are reported beside the pre-filled form, and a blank form s
   await expect(page.locator('input[type=file]')).toBeVisible();
   await expect(page.getByRole('status')).toHaveCount(0);
 });
+
+test('a later import or failed import never shows an earlier import\'s warning', async ({ page }) => {
+  page.on('dialog', dialog => void dialog.accept().catch(() => {}));
+  await openEditor(page);
+  await page.goto('/admin/#/collections/blog/new');
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/formatting.docx');
+  await expect(page.getByRole('status')).toHaveCount(1);
+
+  // A second import with no images replaces the first import's warning.
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/template-filled.docx');
+  await expect(page.locator('[id^="title-field"]').first()).toHaveValue('Why practice beats training');
+  await expect(page.getByRole('status')).toHaveCount(0);
+
+  // A failed import leaves the earlier form alone, and its warning does not come back.
+  await page.locator('input[type=file]').setInputFiles('tests/fixtures/manuscripts/formatting.docx');
+  await expect(page.getByRole('status')).toHaveCount(1);
+  await page.locator('input[type=file]').setInputFiles({ name: 'bad.docx', mimeType: 'application/octet-stream', buffer: Buffer.from('nope') });
+  await expect(page.getByRole('alert')).toContainText('.docx');
+  await expect(page.getByRole('status')).toHaveCount(0);
+});

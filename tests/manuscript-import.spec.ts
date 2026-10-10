@@ -257,3 +257,37 @@ test('text that looks like HTML is plain text, never raw HTML in the body', asyn
   expect(fields.body).toContain('A line that types \\<script>alert(1)\\</script> and & as plain words');
   expect(fields.body).not.toMatch(/(^|[^\\])<script/);
 });
+
+// ── Tables and notes as Word really writes them ─────────────────────────
+// headerless.docx is tables.docx with the "repeat as header row" mark removed, as in most Word tables.
+const tableFields = async (name: string) => {
+  const result = await importManuscript(await manuscript(name));
+  if (!result.ok) throw new Error(result.reason);
+  return result.fields;
+};
+
+test('a table without a marked header row is still a table, never raw HTML', async () => {
+  const { body } = await tableFields('headerless');
+  expect(body).not.toMatch(/<\/?(table|tr|td|th)\b/i);
+  expect(body).toMatch(/^\| Plan \| A \\\| B choice \|\n\| -+ \| -+ \|\n\| Do \| line one line two \|$/m);
+});
+
+test('a table cell with a pipe or several paragraphs stays on one row', async () => {
+  const { body } = await tableFields('tables');
+  expect(body).toMatch(/^\| Plan \| A \\\| B choice \|$/m);
+  expect(body).toMatch(/^\| Do \| line one line two \|$/m);
+  expect(body.split('\n').filter(line => line.startsWith('|'))).toHaveLength(3);
+});
+
+test('several footnotes are numbered in order and keep their links', async () => {
+  const { body } = await tableFields('tables');
+  expect(body).toContain('Opening paragraph with two notes.[1] The second one.[2]');
+  expect(body.slice(body.lastIndexOf('\n\n') + 2)).toBe('1. First note.\n2. Second note with a [link](https://kautilyamsc.com/).');
+});
+
+test('Word endnotes are kept as numbered end notes like footnotes', async () => {
+  const { body } = await tableFields('endnotes');
+  expect(body).toContain('Opening paragraph with two notes.[1] The second one.[2]');
+  expect(body.slice(body.lastIndexOf('\n\n') + 2)).toBe('1. First note.\n2. Second note with a [link](https://kautilyamsc.com/).');
+  expect(body).not.toMatch(/endnote-|↑/);
+});
