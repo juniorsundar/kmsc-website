@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import content from '../../../content/page-content.json';
-import { blogPosts, formatBlogDate } from '../../data/blog-posts';
+import { blogPosts, formatBlogDate, coverThumbUrl } from '../../data/blog-posts';
 
 const { site } = content;
 ---
@@ -17,7 +17,7 @@ const { site } = content;
       <div class="cards">
         {blogPosts.map(post => (
           <article class="card">
-            {post.cover && <img src={post.cover} alt={post.coverAlt} />}
+            {post.cover && <img src={coverThumbUrl(post.cover)} width="720" height="405" loading="lazy" decoding="async" alt={post.coverAlt} />}
             <p><time datetime={post.date}>{formatBlogDate(post.date)}</time></p>
             <h2><a href={`/blog/${post.slug}/`}>{post.title}</a></h2>
             <p>{post.summary}</p>

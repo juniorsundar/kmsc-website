@@ -31,3 +31,7 @@ export function formatBlogDate(date: string) {
     timeZone: 'UTC'
   }).format(new Date(`${date}T00:00:00Z`));
 }
+
+// "/media/a/b.png" -> "a-b"; the preview is served at /media/thumbs/a-b.webp
+export const coverThumbName = (cover: string) => cover.replace(/^\/media\//, '').replace(/\.[^.]+$/, '').replace(/\//g, '-');
+export const coverThumbUrl = (cover: string) => `/media/thumbs/${coverThumbName(cover)}.webp`;
